@@ -168,6 +168,7 @@ public class Scanner implements IScanner {
                         if (kind == null) {
                             kind = Kind.IDENT;
                         }
+
                         return new Token(kind, tokenStart, length, inputChars);
                     }
                 }
