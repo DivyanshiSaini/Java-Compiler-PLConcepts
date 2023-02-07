@@ -35,7 +35,7 @@ public class Scanner implements IScanner {
     }
 
     boolean isDigit(char c){
-        if(c == '1'|| c=='2' || c=='3' || c=='4'|| c=='5'|| c=='6'|| c=='7'|| c=='8' || c=='9'){
+        if( c=='0'||c == '1'|| c=='2' || c=='3' || c=='4'|| c=='5'|| c=='6'|| c=='7'|| c=='8' || c=='9'){
             return true;
         }
         else {
@@ -43,7 +43,7 @@ public class Scanner implements IScanner {
         }
     }
     boolean isIdentStart(char c) {
-        if (Character.isLetter(c)) {
+        if (Character.isUpperCase(c) || Character.isLowerCase(c) || c == '_') {
             return true;
         } else{
             return false;
@@ -63,6 +63,7 @@ public class Scanner implements IScanner {
         HAVE_GE,
         HAVE_OR,
         HAVE_AND,
+
         IN_IDENT,
         IN_NUM_LIT
 
@@ -221,13 +222,13 @@ public class Scanner implements IScanner {
                     if (ch == '>') {
                         state = state.START;
                         nextChar();
-                        return new Token(Kind.EXCHANGE, tokenStart, 2, inputChars);
+                        return new Token(Kind.EXCHANGE, tokenStart, 3, inputChars);
                     } else {
                         error ("expected >");
                     }
                 }
                 case  HAVE_GE -> {
-                    if (ch == '=') {
+                    if (ch == '>') {
                         state = state.START;
                         nextChar();
                         return new Token(Kind.GE, tokenStart, 2, inputChars);
@@ -269,7 +270,7 @@ public class Scanner implements IScanner {
                 }
 
                 case IN_IDENT -> {
-                    if (isIdentStart(ch) || isDigit(ch)) {
+                    if (isIdentStart(ch) || isDigit(ch)) { // (a..z)(aa.z|digit)* i0 i1,
                         nextChar();
                     } else {
                         //current char belongs to next token, so don't get next char
@@ -306,6 +307,7 @@ public class Scanner implements IScanner {
                             case "while" -> kind = Kind.RES_while;
                             default -> kind = null;
                         }
+
                         if (kind == null) {
                             kind = Kind.IDENT;
                         }
