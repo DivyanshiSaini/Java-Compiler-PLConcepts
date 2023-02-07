@@ -25,8 +25,8 @@ public class Scanner implements IScanner {
         pos = 0;
         ch = inputChars[pos];
         line = 1;
-        col=1;
-
+        col= 1;
+// " "
 
     }
 
@@ -35,12 +35,14 @@ public class Scanner implements IScanner {
         // sets ch
 
         pos++;
-        col++;
+        col = pos;
         ch = inputChars[pos];
         if(ch == '\n'){
             line++;
-            col = 0;
+            col = pos;
         }
+       // col = 1;
+
 
     }
 
@@ -139,6 +141,14 @@ public class Scanner implements IScanner {
                             nextChar();
                             return new Token(Kind.RCURLY, tokenStart, 1, col, line, inputChars);
                         }
+                        case '(' -> {
+                            nextChar();
+                            return new Token(Kind.LPAREN, tokenStart, 1, col, line, inputChars);
+                        }
+                        case ')' -> {
+                            nextChar();
+                            return new Token(Kind.RPAREN, tokenStart, 1, col, line, inputChars);
+                        }
                         case '!' -> {
                             nextChar();
                             return new Token(Kind.BANG, tokenStart, 1, col, line, inputChars);
@@ -175,11 +185,6 @@ public class Scanner implements IScanner {
                             nextChar();
                             return new Token(Kind.MOD, tokenStart, 1, col, line, inputChars);
                         }
-
-
-
-
-
                         case '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {//char is nonzero digit
                             state = State.IN_NUM_LIT;
                             nextChar();
@@ -188,7 +193,9 @@ public class Scanner implements IScanner {
                             if (isIdentStart(ch)) {
                                 state = State.IN_IDENT;
                                 nextChar();
-                            } else error("illegal char with ascii value: " + (int) ch);
+                            } else {
+                                throw new LexicalException("illegal char with ascii value: " + (ch));
+                            }
                         }
 
                     }

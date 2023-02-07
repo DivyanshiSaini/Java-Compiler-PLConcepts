@@ -29,7 +29,7 @@ public class Token implements IToken{
 
     @Override
     public SourceLocation getSourceLocation() {
-        return new SourceLocation(col,line);
+        return new SourceLocation(line,col);
     } //returns records line and column
 
     @Override
