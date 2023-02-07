@@ -37,9 +37,26 @@ public class Scanner implements IScanner {
         ch = inputChars[pos];
     }
 
-    boolean isDigit(char c){return true;};
-    boolean isIdentStart(char c){return true;};
-    void error(String s){};
+    boolean isDigit(char c){
+        if(c == '1'|| c=='2' || c=='3' || c=='4'|| c=='5'){
+        return true;
+        } else if(c=='6'|| c=='7'|| c=='8' || c=='9'){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    boolean isIdentStart(char c) {
+        if (Character.isLetter(c)) {
+            return true;
+        } else{
+            return false;
+        }
+    }
+    void error(String s){
+        System.out.println(s);
+    };
 
 
     private enum State {
@@ -109,7 +126,7 @@ public class Scanner implements IScanner {
                         return new Token(Kind.NUM_LIT, tokenStart, length, inputChars);
                     }
                 }
-                /*case IN_IDENT -> {
+                case IN_IDENT -> {
                     if (isIdentStart(ch) || isDigit(ch)) {
                         nextChar();
                     } else {//
@@ -117,13 +134,13 @@ public class Scanner implements IScanner {
                         int length = pos - tokenStart;
                         //determine if this is a reserved word. If not, it is an ident.
                         String text = input.substring(tokenStart, tokenStart + length);
-                        Kind kind = reservedWords.get(text);
+                        /*Kind kind = reservedWords.get(text);
                         if (kind == null) {
                             kind = IDENT;
                         }
-                        return new Token(kind, tokenStart, length, inputChars);
+                        return new Token(kind, tokenStart, length, inputChars);*/
                     }
-                }*/
+                }
             }
         }
     }
