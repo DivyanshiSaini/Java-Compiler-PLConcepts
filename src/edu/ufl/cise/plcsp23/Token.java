@@ -32,7 +32,7 @@ public class Token implements IToken{
     public Kind getKind() {return kind;} //kind of the toke-> variable
 
     @Override
-    public String getTokenString() { return tString; }// return characters in the token
+    public String getTokenString() { return String.valueOf(source); }// return characters in the token
 
 
 }
