@@ -3,8 +3,8 @@ package edu.ufl.cise.plcsp23;
 public class NumLitToken extends Token implements INumLitToken {
 
 
-    public NumLitToken(Kind r, int p, int l, char[] s) {
-        super(r, p, l, s);
+    public NumLitToken(Kind k, int l, int b, int c, int lin, char[] s) {
+        super(k,l,b,c,lin,s);
     }
 
     @Override

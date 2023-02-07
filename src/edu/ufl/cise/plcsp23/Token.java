@@ -5,28 +5,32 @@ public class Token implements IToken{
     //public record SourceLocation(int line, int column) {}
 
     final Kind kind;
-    final int pos; //col
+    final int begin;
+    final int len;
+    final int col; //col
     final int line; //line
     final char[] source;
+
 
     final String tString = "";
 
 
     //constructor
-    public Token(Kind k, int p, int l, char[] s) {
+    public Token(Kind k, int b, int l, int c, int lin, char[] s) {
         super();
         this.kind = k;
-        this.pos = p;
-        this.line = l;
+        this.begin = b;
+        this.len = l;
+        this.col = c;
+        this.line = lin;
         this.source = s;
-       // this.tString = tS;
     }
 // scanner pass line and col val
 
     @Override
     public SourceLocation getSourceLocation() {
-        return new SourceLocation(pos,line);
-    } //returns records  line and column
+        return new SourceLocation(col,line);
+    } //returns records line and column
 
     @Override
     public Kind getKind() {return kind;} //kind of the toke-> variable
@@ -34,7 +38,7 @@ public class Token implements IToken{
     @Override
     public String getTokenString() {
         String temp = String.valueOf(source);
-        return temp.substring(pos, line);
+        return temp.substring(begin, len);
     }// return characters in the token
 
 
