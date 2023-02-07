@@ -235,7 +235,8 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.EXCHANGE, tokenStart, 3, col, line, inputChars);
                     } else {
-                        error ("expected >");
+                       // error ("expected >");
+                        throw new LexicalException("expected >");
                     }
                 }
                 case  HAVE_GE -> {
