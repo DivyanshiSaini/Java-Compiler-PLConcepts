@@ -16,13 +16,16 @@ public class Scanner implements IScanner {
     //invariant ch == inputChars[pos]
     int pos; //position of ch
     char ch; //next char
-
+    int line;
+    int col;
     //constructor
     public Scanner(String input) {
         this.input = input;
         inputChars = Arrays.copyOf(input.toCharArray(), input.length() + 1);
         pos = 0;
         ch = inputChars[pos];
+        line = 1;
+        col=1;
 
 
     }
@@ -30,8 +33,15 @@ public class Scanner implements IScanner {
     void nextChar() {
         //define next char function
         // sets ch
+
         pos++;
+        col++;
         ch = inputChars[pos];
+        if(ch == '\n'){
+            line++;
+            col = 0;
+        }
+
     }
 
     boolean isDigit(char c){
@@ -266,7 +276,8 @@ public class Scanner implements IScanner {
                     } else {
                         //current char belongs to next token, so don't get next char
                         int length = pos - tokenStart;
-                        return new NumLitToken(Kind.NUM_LIT, tokenStart, length, inputChars);
+                        //return new NumLitToken(Integer.parseInt(new String(inputChars, tokenStart,length)),tokenStart,length,inputChars);
+                        return new NumLitToken(Kind.NUM_LIT,tokenStart,length,inputChars);
                     }
                 }
 
