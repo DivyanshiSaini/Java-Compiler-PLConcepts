@@ -79,7 +79,14 @@ public class Scanner implements IScanner {
                 case START -> {
                     tokenStart = pos;
                     switch (ch) {
+                        case 0 -> { //end of input
+                            return new Token(Kind.EOF, tokenStart, 0, inputChars);
+                        }
                         case ' ', '\n', '\r', '\t','\f' -> nextChar();
+                        case '0' -> {
+                            nextChar();
+                            return new Token(Kind.NUM_LIT, tokenStart, 1, inputChars);
+                        }
                         case '.' -> {
                             nextChar();
                             return new Token(Kind.DOT, tokenStart, 1, inputChars);
@@ -127,10 +134,6 @@ public class Scanner implements IScanner {
                         case '&' -> {
                             state = State.HAVE_AND;
                             nextChar();
-                        }
-                        case '0' -> {
-                            nextChar();
-                            return new Token(Kind.NUM_LIT, tokenStart, 1, inputChars);
                         }
                         case '=' -> {
                             state = State.HAVE_EQ;
@@ -306,7 +309,6 @@ public class Scanner implements IScanner {
                         if (kind == null) {
                             kind = Kind.IDENT;
                         }
-
                         return new Token(kind, tokenStart, length, inputChars);
                     }
                 }
