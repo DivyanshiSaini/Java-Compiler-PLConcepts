@@ -65,6 +65,7 @@ public class Scanner implements IScanner {
         HAVE_AND,
 
         IN_IDENT,
+        IN_ID2,
         IN_NUM_LIT
 
 
@@ -265,12 +266,13 @@ public class Scanner implements IScanner {
                     } else {
                         //current char belongs to next token, so don't get next char
                         int length = pos - tokenStart;
-                        return new Token(Kind.NUM_LIT, tokenStart, length, inputChars);
+                        return new NumLitToken(Kind.NUM_LIT, tokenStart, length, inputChars);
                     }
                 }
 
                 case IN_IDENT -> {
                     if (isIdentStart(ch) || isDigit(ch)) { // (a..z)(aa.z|digit)* i0 i1,
+
                         nextChar();
                     } else {
                         //current char belongs to next token, so don't get next char
@@ -314,6 +316,7 @@ public class Scanner implements IScanner {
                         return new Token(kind, tokenStart, length, inputChars);
                     }
                 }
+
             }
         }
     }
