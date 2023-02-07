@@ -57,8 +57,16 @@ public class Scanner implements IScanner {
     private enum State {
         START,
         HAVE_EQ,
+        HAVE_MUL,
+        HAVE_EXC1,
+        HAVE_EXC2,
+        HAVE_GE,
+        HAVE_OR,
+        HAVE_AND,
         IN_IDENT,
-        IN_NUM_LIT,
+        IN_NUM_LIT
+
+
     }
 
     @Override
@@ -71,14 +79,54 @@ public class Scanner implements IScanner {
                 case START -> {
                     tokenStart = pos;
                     switch (ch) {
-                        case 0 -> { //end of input
-                            return new Token(Kind.EOF, tokenStart, 0, inputChars);
-                        }
                         case ' ', '\n', '\r', '\t','\f' -> nextChar();
-
-                        case '*' -> {
+                        case '.' -> {
                             nextChar();
-                            return new Token(Kind.TIMES, tokenStart, 1, inputChars);
+                            return new Token(Kind.DOT, tokenStart, 1, inputChars);
+                        }
+                        case ',' -> {
+                            nextChar();
+                            return new Token(Kind.COMMA, tokenStart, 1, inputChars);
+                        }
+                        case '?' -> {
+                            nextChar();
+                            return new Token(Kind.QUESTION, tokenStart, 1, inputChars);
+                        }
+                        case ':' -> {
+                            nextChar();
+                            return new Token(Kind.COLON, tokenStart, 1, inputChars);
+                        }
+                        case '<' -> {
+                            state = State.HAVE_EXC1;
+                            nextChar();
+                        }
+                        case '>' -> {
+                            state = State.HAVE_GE;
+                            nextChar();
+                        }
+                        case '[' -> {
+                            nextChar();
+                            return new Token(Kind.LSQUARE, tokenStart, 1, inputChars);
+                        }
+                        case ']' -> {
+                            nextChar();
+                            return new Token(Kind.RSQUARE, tokenStart, 1, inputChars);
+                        }
+                        case '{' -> {
+                            nextChar();
+                            return new Token(Kind.LCURLY, tokenStart, 1, inputChars);
+                        }
+                        case '}' -> {
+                            nextChar();
+                            return new Token(Kind.RCURLY, tokenStart, 1, inputChars);
+                        }
+                        case '!' -> {
+                            nextChar();
+                            return new Token(Kind.BANG, tokenStart, 1, inputChars);
+                        }
+                        case '&' -> {
+                            state = State.HAVE_AND;
+                            nextChar();
                         }
                         case '0' -> {
                             nextChar();
@@ -88,10 +136,34 @@ public class Scanner implements IScanner {
                             state = State.HAVE_EQ;
                             nextChar();
                         }
-                        /*case '==' -> {
-                            state = State.;
+                        case '|' -> {
+                            state = State.HAVE_OR;
                             nextChar();
-                        }*/
+                        }
+                        case '+' -> {
+                            nextChar();
+                            return new Token(Kind.PLUS, tokenStart, 1, inputChars);
+                        }
+                        case '-' -> {
+                            nextChar();
+                            return new Token(Kind.MINUS, tokenStart, 1, inputChars);
+                        }
+                        case '/' -> {
+                            nextChar();
+                            return new Token(Kind.DIV, tokenStart, 1, inputChars);
+                        }
+                        case '*' -> {
+                            nextChar();
+                            return new Token(Kind.TIMES, tokenStart, 1, inputChars);
+                        }
+                        case '%' -> {
+                            nextChar();
+                            return new Token(Kind.MOD, tokenStart, 1, inputChars);
+                        }
+
+
+
+
 
                         case '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {//char is nonzero digit
                             state = State.IN_NUM_LIT;
@@ -113,9 +185,75 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.EQ, tokenStart, 2, inputChars);
                     } else {
-                        error("expected =");
+                        nextChar();
+                        return new Token(Kind.ASSIGN, tokenStart, 2, inputChars);
                     }
                 }
+
+                case HAVE_MUL -> {
+                    if (ch == '*') {
+                        state = state.START;
+                        nextChar();
+                        return new Token(Kind.EXP, tokenStart, 2, inputChars);
+                    } else {
+                        nextChar();
+                        return new Token(Kind.TIMES, tokenStart, 2, inputChars);
+                    }
+                }
+
+                case  HAVE_EXC1 -> {
+                    if (ch == '-') {
+                        state = State.HAVE_EXC2;
+                        nextChar();
+                    } else if (ch == '=') {
+                        state = state.START;
+                        nextChar();
+                        return new Token(Kind.LE, tokenStart, 2, inputChars);
+                    } else {
+                        nextChar();
+                        return new Token(Kind.LT, tokenStart, 2, inputChars);
+                    }
+                }
+                case  HAVE_EXC2 -> {
+                    if (ch == '>') {
+                        state = state.START;
+                        nextChar();
+                        return new Token(Kind.EXCHANGE, tokenStart, 2, inputChars);
+                    } else {
+                        error ("expected >");
+                    }
+                }
+                case  HAVE_GE -> {
+                    if (ch == '=') {
+                        state = state.START;
+                        nextChar();
+                        return new Token(Kind.GE, tokenStart, 2, inputChars);
+                    } else {
+                        nextChar();
+                        return new Token(Kind.GT, tokenStart, 2, inputChars);
+                    }
+                }
+                case  HAVE_OR -> {
+                    if (ch == '|') {
+                        state = state.START;
+                        nextChar();
+                        return new Token(Kind.OR, tokenStart, 2, inputChars);
+                    } else {
+                        nextChar();
+                        return new Token(Kind.BITOR, tokenStart, 2, inputChars);
+                    }
+                }
+                case  HAVE_AND -> {
+                    if (ch == '|') {
+                        state = state.START;
+                        nextChar();
+                        return new Token(Kind.AND, tokenStart, 2, inputChars);
+                    } else {
+                        nextChar();
+                        return new Token(Kind.BITAND, tokenStart, 2, inputChars);
+                    }
+                }
+
 
                 case IN_NUM_LIT -> {
                     if (isDigit(ch)) {//char is digit, continue in IN_NUM_LIT state
