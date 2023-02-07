@@ -14,7 +14,7 @@ public class CompilerComponentFactory {
 	public static IScanner makeScanner(String input) {
 		//Add statement to return an instance of your scanner
 		// return obj of scanner class
-		return new Scanner();
+		return new Scanner(input);
 	}
 
 }
