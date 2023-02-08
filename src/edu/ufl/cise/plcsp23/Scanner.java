@@ -44,9 +44,9 @@ public class Scanner implements IScanner {
             col++;
         }
         pos++;
-       // col++;
+        // col++;
         ch = inputChars[pos];
-       // col = 1;
+        // col = 1;
 
 
     }
@@ -105,7 +105,7 @@ public class Scanner implements IScanner {
 
                         case '0' -> {
                             nextChar();
-                            return new Token(Kind.NUM_LIT, tokenStart, 1, col, line, inputChars);
+                            return new NumLitToken(tokenStart, 1, col, line, inputChars);
                         }
                         case '.' -> {
                             nextChar();
@@ -191,6 +191,11 @@ public class Scanner implements IScanner {
                             nextChar();
                             return new Token(Kind.MOD, tokenStart, 1, col, line, inputChars);
                         }
+
+
+
+
+
                         case '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {//char is nonzero digit
                             state = State.IN_NUM_LIT;
                             nextChar();
@@ -285,19 +290,24 @@ public class Scanner implements IScanner {
 
 
                 case IN_NUM_LIT -> {
+                    int length = pos - tokenStart;
+
                     if (isDigit(ch)) {//char is digit, continue in IN_NUM_LIT state
+                        //check if exceeds max value at current state
+                        String temp = String.valueOf(inputChars).substring(tokenStart, tokenStart+length);
+                        long currentValue = Long.parseLong(temp);
+                        if(currentValue>Integer.MAX_VALUE){
+                            throw new LexicalException("Exceeded max integer value!");
+                        }
                         nextChar();
                     } else {
                         //current char belongs to next token, so don't get next char
-                        int length = pos - tokenStart;
-                        //return new NumLitToken(Integer.parseInt(new String(inputChars, tokenStart,length)),tokenStart,length,inputChars);
                         return new NumLitToken(tokenStart,length, col, line, inputChars);
                     }
                 }
 
                 case IN_IDENT -> {
                     if (isIdentStart(ch) || isDigit(ch)) { // (a..z)(aa.z|digit)* i0 i1,
-
                         nextChar();
                     } else {
                         //current char belongs to next token, so don't get next char
@@ -332,11 +342,7 @@ public class Scanner implements IScanner {
                             case "atan" -> kind = Kind.RES_atan;
                             case "if" -> kind = Kind.RES_if;
                             case "while" -> kind = Kind.RES_while;
-                            default -> kind = null;
-                        }
-
-                        if (kind == null) {
-                            kind = Kind.IDENT;
+                            default -> kind = Kind.IDENT;
                         }
                         return new Token(kind, tokenStart, length, col, line, inputChars);
                     }

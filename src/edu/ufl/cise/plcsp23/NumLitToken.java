@@ -1,5 +1,5 @@
 package edu.ufl.cise.plcsp23;
-
+import edu.ufl.cise.plcsp23.Token;
 public class NumLitToken extends Token implements INumLitToken {
 
 
@@ -9,6 +9,17 @@ public class NumLitToken extends Token implements INumLitToken {
 
     @Override
     public int getValue() {
-        return 0;
+        int num = 0;
+
+        if(len==1){
+            String temp = String.valueOf(source[begin]);
+            num = Integer.parseInt(temp);
+        }
+        else{
+            String temp = String.valueOf(source);
+            num = Integer.parseInt(temp.substring(begin, begin+len));
+        }
+
+        return num;
     } //string to num
 }

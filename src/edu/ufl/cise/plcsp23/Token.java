@@ -38,7 +38,7 @@ public class Token implements IToken{
     @Override
     public String getTokenString() {
         String temp = String.valueOf(source);
-        return temp.substring(begin, len);
+        return temp.substring(begin, begin+len);
     }// return characters in the token
 
 
