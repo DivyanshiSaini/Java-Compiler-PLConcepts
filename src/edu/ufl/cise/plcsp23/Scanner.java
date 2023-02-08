@@ -246,7 +246,7 @@ public class Scanner implements IScanner {
                         return new Token(Kind.OR, tokenStart, 2, col, line, inputChars);
                     } else {
                         //nextChar();
-                        return new Token(Kind.BITOR, tokenStart, 2, col, line, inputChars);
+                        return new Token(Kind.BITOR, tokenStart, 1, col, line, inputChars);
                     }
                 }
                 case  HAVE_AND -> {
