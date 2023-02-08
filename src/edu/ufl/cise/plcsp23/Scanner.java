@@ -34,13 +34,18 @@ public class Scanner implements IScanner {
         //define next char function
         // sets ch
 
-        pos++;
-        col = pos;
-        ch = inputChars[pos];
+       /* pos++;
+        col++;
+        ch = inputChars[pos];*/
         if(ch == '\n'){
             line++;
-            col = pos;
+            col = 1;
+        }else{
+            col++;
         }
+        pos++;
+       // col++;
+        ch = inputChars[pos];
        // col = 1;
 
 
@@ -97,6 +102,7 @@ public class Scanner implements IScanner {
                             return new Token(Kind.EOF, tokenStart, 0, col, line, inputChars);
                         }
                         case ' ', '\n', '\r', '\t','\f' -> nextChar();
+
                         case '0' -> {
                             nextChar();
                             return new Token(Kind.NUM_LIT, tokenStart, 1, col, line, inputChars);
@@ -232,8 +238,8 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.LE, tokenStart, 2, col, line, inputChars);
                     } else {
-                        nextChar();
-                        return new Token(Kind.LT, tokenStart, 2, col, line, inputChars);
+                        //nextChar();
+                        return new Token(Kind.LT, tokenStart, 1, col, line, inputChars);
                     }
                 }
                 case  HAVE_EXC2 -> {
@@ -247,13 +253,13 @@ public class Scanner implements IScanner {
                     }
                 }
                 case  HAVE_GE -> {
-                    if (ch == '>') {
+                    if (ch == '=') {
                         state = state.START;
                         nextChar();
                         return new Token(Kind.GE, tokenStart, 2, col, line, inputChars);
                     } else {
-                        nextChar();
-                        return new Token(Kind.GT, tokenStart, 2, col, line, inputChars);
+                       // nextChar();
+                        return new Token(Kind.GT, tokenStart, 1, col, line, inputChars);
                     }
                 }
                 case  HAVE_OR -> {
@@ -267,7 +273,7 @@ public class Scanner implements IScanner {
                     }
                 }
                 case  HAVE_AND -> {
-                    if (ch == '|') {
+                    if (ch == '&') {
                         state = state.START;
                         nextChar();
                         return new Token(Kind.AND, tokenStart, 2, col, line, inputChars);
@@ -285,7 +291,7 @@ public class Scanner implements IScanner {
                         //current char belongs to next token, so don't get next char
                         int length = pos - tokenStart;
                         //return new NumLitToken(Integer.parseInt(new String(inputChars, tokenStart,length)),tokenStart,length,inputChars);
-                        return new NumLitToken(Kind.NUM_LIT,tokenStart,length, col, line, inputChars);
+                        return new NumLitToken(tokenStart,length, col, line, inputChars);
                     }
                 }
 
