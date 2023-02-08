@@ -154,8 +154,8 @@ public class Scanner implements IScanner {
                             return new Token(Kind.DIV, tokenStart, 1, col, line, inputChars);
                         }
                         case '*' -> {
+                            state = State.HAVE_MUL;
                             nextChar();
-                            return new Token(Kind.TIMES, tokenStart, 1, col, line, inputChars);
                         }
                         case '%' -> {
                             nextChar();
@@ -190,8 +190,8 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.EQ, tokenStart, 2, col, line, inputChars);
                     } else {
-                        nextChar();
-                        return new Token(Kind.ASSIGN, tokenStart, 2, col, line, inputChars);
+                        //nextChar();
+                        return new Token(Kind.ASSIGN, tokenStart, 1, col, line, inputChars);
                     }
                 }
 
@@ -201,8 +201,8 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.EXP, tokenStart, 2, col, line, inputChars);
                     } else {
-                        nextChar();
-                        return new Token(Kind.TIMES, tokenStart, 2, col, line, inputChars);
+                        //nextChar();
+                        return new Token(Kind.TIMES, tokenStart, 1, col, line, inputChars);
                     }
                 }
 
@@ -245,7 +245,7 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.OR, tokenStart, 2, col, line, inputChars);
                     } else {
-                        nextChar();
+                        //nextChar();
                         return new Token(Kind.BITOR, tokenStart, 2, col, line, inputChars);
                     }
                 }
@@ -255,8 +255,8 @@ public class Scanner implements IScanner {
                         nextChar();
                         return new Token(Kind.AND, tokenStart, 2, col, line, inputChars);
                     } else {
-                        nextChar();
-                        return new Token(Kind.BITAND, tokenStart, 2, col, line, inputChars);
+                        //nextChar();
+                        return new Token(Kind.BITAND, tokenStart, 1, col, line, inputChars);
                     }
                 }
 
@@ -285,7 +285,7 @@ public class Scanner implements IScanner {
                         case 0 -> { //end of input before string end "
                             throw new LexicalException("end of string never reached");
                         }
-                        case '\n' -> throw new LexicalException("illegal line term inside string");
+                        case '\n', '\r' -> throw new LexicalException("illegal line term inside string");
                         case '\\' ->{
                             try {
                                 char nextChar = inputChars[pos+1];

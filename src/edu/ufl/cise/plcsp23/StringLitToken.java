@@ -6,7 +6,7 @@ public class StringLitToken extends Token implements IStringLitToken {
     public StringLitToken(Kind k, int l, int b, int c, int lin, char[] s) {
         super(k,l,b,c,lin,s);
     }
-
+    // "\t"
     @Override
     public String getValue() {
         char[] arr = Arrays.copyOfRange(source, begin+1, begin+len-1);
