@@ -1,4 +1,5 @@
 package edu.ufl.cise.plcsp23;
+import java.util.Arrays;
 import edu.ufl.cise.plcsp23.Token;
 public class StringLitToken extends Token implements IStringLitToken {
 
@@ -9,6 +10,14 @@ public class StringLitToken extends Token implements IStringLitToken {
 
     @Override
     public String getValue() {
-        return null;
+        char[] arr = Arrays.copyOfRange(source, begin+1, begin+len-1);
+        String retStr = String.valueOf(arr);
+        retStr = retStr.replace("\\b","\b");
+        retStr = retStr.replace("\\t","\t");
+        retStr = retStr.replace("\\n","\n");
+        retStr = retStr.replace("\\r","\r");
+        retStr = retStr.replace("\\\"","\"");
+        retStr = retStr.replace("\\\\","\\");
+        return retStr;
     } // removed ", and converts escape sequence to actual value
 }

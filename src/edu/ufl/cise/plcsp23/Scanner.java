@@ -9,7 +9,6 @@ import static java.util.Arrays.copyOf;
 
 public class Scanner implements IScanner {
 
-
     final String input;
     //array containing input chars, terminated with extra char 0
     final char[] inputChars;
@@ -26,17 +25,9 @@ public class Scanner implements IScanner {
         ch = inputChars[pos];
         line = 1;
         col= 1;
-// " "
-
     }
 
     void nextChar() {
-        //define next char function
-        // sets ch
-
-       /* pos++;
-        col++;
-        ch = inputChars[pos];*/
         if(ch == '\n'){
             line++;
             col = 1;
@@ -44,11 +35,7 @@ public class Scanner implements IScanner {
             col++;
         }
         pos++;
-        // col++;
         ch = inputChars[pos];
-        // col = 1;
-
-
     }
 
     boolean isDigit(char c){
@@ -80,12 +67,12 @@ public class Scanner implements IScanner {
         HAVE_GE,
         HAVE_OR,
         HAVE_AND,
-
         IN_IDENT,
         IN_ID2,
-        IN_NUM_LIT
-
-
+        IN_NUM_LIT,
+        HAVE_ILLEGAL,
+        IN_STRING_LIT,
+        IN_COMMENT;
     }
 
     @Override
@@ -191,11 +178,14 @@ public class Scanner implements IScanner {
                             nextChar();
                             return new Token(Kind.MOD, tokenStart, 1, col, line, inputChars);
                         }
-
-
-
-
-
+                        case '"' -> {
+                            state = State.IN_STRING_LIT;
+                            nextChar();
+                        }
+                        case '~' -> {
+                            state = State.IN_COMMENT;
+                            nextChar();
+                        }
                         case '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {//char is nonzero digit
                             state = State.IN_NUM_LIT;
                             nextChar();
@@ -208,7 +198,6 @@ public class Scanner implements IScanner {
                                 throw new LexicalException("illegal char with ascii value: " + (ch));
                             }
                         }
-
                     }
                 }
 
@@ -288,6 +277,52 @@ public class Scanner implements IScanner {
                     }
                 }
 
+                case IN_COMMENT -> {
+                    switch(ch){
+                        case 0 -> { //end of input before string end "
+                            return new Token(Kind.EOF, tokenStart, 0, col, line, inputChars);
+                        }
+                        case '\n' -> {
+                            nextChar();
+                            state = state.START;
+                        }
+                        default ->{
+                            nextChar();
+                        }
+                    }
+                }
+
+                case IN_STRING_LIT -> {
+                    int length = pos - tokenStart;
+                    switch(ch){
+                        case '"' ->{
+                            nextChar();
+                            return new StringLitToken(Kind.STRING_LIT, tokenStart, length+1, col, line, inputChars);
+                        }
+                        case 0 -> { //end of input before string end "
+                            throw new LexicalException("end of string never reached");
+                        }
+                        case '\n' -> throw new LexicalException("illegal line term inside string");
+                        case '\\' ->{
+                            try {
+                                char nextChar = inputChars[pos+1];
+                                switch(nextChar){
+                                    case 'b', 'r', 't', 'n','"','\\' ->{
+                                        nextChar();
+                                        nextChar();
+                                    }
+                                    default -> throw new LexicalException("illegal escape char");
+                                }
+                            }
+                            catch(Exception e) {
+                                throw new LexicalException("\\ at end of line");
+                            }
+                        }
+                        default->{
+                            nextChar();
+                        }
+                    }
+                }
 
                 case IN_NUM_LIT -> {
                     int length = pos - tokenStart;
@@ -307,7 +342,11 @@ public class Scanner implements IScanner {
                 }
 
                 case IN_IDENT -> {
-                    if (isIdentStart(ch) || isDigit(ch)) { // (a..z)(aa.z|digit)* i0 i1,
+                    if(ch == '~'){
+                        state = State.IN_COMMENT;
+                        nextChar();
+                    }
+                    else if (isIdentStart(ch) || isDigit(ch)) { // (a..z)(aa.z|digit)* i0 i1,
                         nextChar();
                     } else {
                         //current char belongs to next token, so don't get next char
@@ -347,7 +386,6 @@ public class Scanner implements IScanner {
                         return new Token(kind, tokenStart, length, col, line, inputChars);
                     }
                 }
-
             }
         }
     }

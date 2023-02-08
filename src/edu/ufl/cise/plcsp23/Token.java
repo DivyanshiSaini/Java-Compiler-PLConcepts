@@ -29,7 +29,7 @@ public class Token implements IToken{
 
     @Override
     public SourceLocation getSourceLocation() {
-        return new SourceLocation(line,col);
+        return new SourceLocation(line,col-len);
     } //returns records line and column
 
     @Override
@@ -38,7 +38,8 @@ public class Token implements IToken{
     @Override
     public String getTokenString() {
         String temp = String.valueOf(source);
-        return temp.substring(begin, begin+len);
+        String tokString = temp.substring(begin, begin+len);
+        return tokString;
     }// return characters in the token
 
 
