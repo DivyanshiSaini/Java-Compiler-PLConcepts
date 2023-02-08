@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="HW1">
+    <output-path>$PROJECT_DIR$/out/artifacts/HW1</output-path>
+    <root id="archive" name="HW1.jar">
+      <element id="dir-copy" path="$PROJECT_DIR$/src" />
+    </root>
+  </artifact>
+</component>

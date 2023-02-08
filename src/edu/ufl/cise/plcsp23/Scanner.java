@@ -36,25 +36,11 @@ public class Scanner implements IScanner {
     }
 
     boolean isDigit(char c){
-        if( c=='0'||c == '1'|| c=='2' || c=='3' || c=='4'|| c=='5'|| c=='6'|| c=='7'|| c=='8' || c=='9'){
-            return true;
-        }
-        else {
-            return false;
-        }
+        return c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9';
     }
     boolean isIdentStart(char c) {
-        if (Character.isUpperCase(c) || Character.isLowerCase(c) || c == '_') {
-            return true;
-        } else{
-            return false;
-        }
+        return Character.isUpperCase(c) || Character.isLowerCase(c) || c == '_';
     }
-    void error(String s){
-        System.out.println(s);
-    };
-
-
     private enum State {
         START,
         HAVE_EQ,
