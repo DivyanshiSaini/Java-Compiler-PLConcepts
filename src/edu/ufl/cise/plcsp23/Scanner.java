@@ -2,10 +2,7 @@ package edu.ufl.cise.plcsp23;
 
 import java.util.Arrays;
 
-
 import static edu.ufl.cise.plcsp23.IToken.Kind;
-import static java.util.Arrays.copyOf;
-
 
 public class Scanner implements IScanner {
 
