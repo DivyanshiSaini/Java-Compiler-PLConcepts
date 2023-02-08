@@ -1,6 +1,5 @@
 package edu.ufl.cise.plcsp23;
 import java.util.Arrays;
-import edu.ufl.cise.plcsp23.Token;
 public class StringLitToken extends Token implements IStringLitToken {
 
 
