@@ -20,7 +20,7 @@ public class CompilerComponentFactory {
 	public static IParser makeAssignment2Parser(String input)
 			throws LexicalException {
 		//add code to create a scanner and parser and return the parser.
-		//provide input as it enters const.
-		return new Parser(input); // const.
+		//provide input as it enters constructor.
+		return new Parser(input); // constructor.
 	}
 }
