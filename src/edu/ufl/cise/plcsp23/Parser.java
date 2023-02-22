@@ -11,6 +11,7 @@ import edu.ufl.cise.plcsp23.ast.UnaryExpr;
 import edu.ufl.cise.plcsp23.ast.ZExpr;
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser implements IParser{
@@ -20,14 +21,15 @@ public class Parser implements IParser{
     }
 
     //final String input;
-    private final List<Token> tokens;
-    private int current = 0;
+    private final List<Kind> tokens;
+    private int current = 0; //index in the list
     IToken t;
 
-    Parser(List<Token> tokens) {
-
-        this.tokens =tokens;
+    Parser(List<Kind> tokens) {
+        this.tokens = tokens;
     }
+
+
     protected boolean isKind(Kind kind) {
         return t.getKind() == kind;
     }
@@ -43,18 +45,18 @@ public class Parser implements IParser{
 
     //primative operations
     private boolean isAtEnd() {
-        return peek().kind == Kind.EOF;
+        return peek() == Kind.EOF;
     }
 
-    private Token peek() {
+    private Kind peek() {
         return tokens.get(current);
     }
 
-    private Token previous() {
+    private Kind previous() {
         return tokens.get(current - 1);
     }
     //advance
-    private Token advance() {
+    private Kind advance() {
         if (!isAtEnd()) current++;
         return previous();
     }
@@ -79,7 +81,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = and();
-        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+        while ( isKind(Kind.ASSIGN, Kind.EQ)) {
             Kind op = t.getKind();
             advance();
             right = and();
@@ -96,7 +98,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = comparison();
-        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+        while ( isKind(Kind.ASSIGN, Kind.EQ)) {
             Kind op = t.getKind();
             advance();
             right = comparison();
@@ -114,7 +116,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = power();
-        while (isKind(Kind.GT) || isKind(Kind.GE) || isKind(Kind.LT) || isKind(Kind.LE) || isKind(Kind.EQ)) {
+        while (isKind(Kind.GT, Kind.GE, Kind.LT, Kind.LE, Kind.EQ)) {
             Kind op = t.getKind();
             advance();
             right = power();
@@ -136,7 +138,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = multiplicative();
-        while(isKind(Kind.PLUS) || isKind(Kind.MINUS)){
+        while(isKind(Kind.PLUS , Kind.MINUS)){
             Kind op = t.getKind();
             advance();
             right = multiplicative();
@@ -152,7 +154,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = unary();
-        while(isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)){
+        while(isKind(Kind.TIMES, Kind.DIV, Kind.MOD)){
             Kind op = t.getKind();
             advance();
             right = unary();
@@ -165,7 +167,7 @@ public class Parser implements IParser{
     Expr unary(){
         IToken firstToken = t;
         Expr e = null;
-        if(isKind(Kind.BANG) || isKind(Kind.MINUS) || isKind(Kind.RES_sin) || isKind(Kind.RES_cos) || isKind(Kind.RES_atan)){
+        if(isKind(Kind.BANG, Kind.MINUS, Kind.RES_sin, Kind.RES_cos ,Kind.RES_atan)){
             Kind op = t.getKind();
             advance();
             e = unary();
