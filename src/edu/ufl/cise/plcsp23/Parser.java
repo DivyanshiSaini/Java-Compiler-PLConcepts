@@ -62,7 +62,122 @@ public class Parser implements IParser{
 
 
 
+    //<expr> ::=   <conditional_expr> | <or_expr>
+    Expr expression() {
+        return null;
+    }
 
+    //<conditional_expr>  ::= if <expr> ? <expr> ? <expr>
+    Expr conditional() {
+        return null;
+    }
+
+    //<or_expr> ::=  <and_expr> (  ( | | || ) <and_expr>)*
+    Expr or(){
+        IToken firstToken = t;
+        Expr expr = and();
+        Expr left = null;
+        Expr right = null;
+        left = and();
+        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+            Kind op = t.getKind();
+            advance();
+            right = and();
+            left = new BinaryExpr(firstToken,left,op,right);
+        }
+
+        return left;
+    }
+
+    //<and_expr> ::=  <comparison_expr> ( ( & | && )  <comparison_expr>)*
+    Expr and() {
+        IToken firstToken = t;
+        Expr expr = comparison();
+        Expr left = null;
+        Expr right = null;
+        left = comparison();
+        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+            Kind op = t.getKind();
+            advance();
+            right = comparison();
+            left = new BinaryExpr(firstToken,left,op,right);
+        }
+
+        return left;
+    }
+
+
+    //<comparison_expr> ::=   <power_expr> ( (< | > | == | <= | >=) <power_expr>)*
+    Expr comparison() {
+        IToken firstToken = t;
+        Expr expr = power();
+        Expr left = null;
+        Expr right = null;
+        left = power();
+        while (isKind(Kind.GT) || isKind(Kind.GE) || isKind(Kind.LT) || isKind(Kind.LE) || isKind(Kind.EQ)) {
+            Kind op = t.getKind();
+            advance();
+            right = power();
+            left = new BinaryExpr(firstToken,left,op,right);
+        }
+
+        return left;
+    }
+
+    // <power_expr> ::=    <additive_expr> ** <power_expr> |  <additive_expr>
+    Expr power(){
+        return null;
+    }
+
+    // <additive_expr> ::=  <multiplicative_expr> ( ( + | - ) <multiplicative_expr> )*
+    Expr additive(){
+        IToken firstToken = t;
+        Expr expr = multiplicative();
+        Expr left = null;
+        Expr right = null;
+        left = multiplicative();
+        while(isKind(Kind.PLUS) || isKind(Kind.MINUS)){
+            Kind op = t.getKind();
+            advance();
+            right = multiplicative();
+            left = new BinaryExpr(firstToken,left,op,right);
+        }
+        return left;
+    }
+
+    // <multiplicative_expr> ::= <unary_expr> (( * | / | % ) <unary_expr>)*
+    Expr multiplicative(){
+        IToken firstToken = t;
+        Expr expr = unary();
+        Expr left = null;
+        Expr right = null;
+        left = unary();
+        while(isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)){
+            Kind op = t.getKind();
+            advance();
+            right = unary();
+            left = new BinaryExpr(firstToken,left,op,right);
+        }
+        return left;
+    }
+
+    //<unary_expr> ::= ( ! | - | sin | cos | atan) <unary_expr> |   <primary_expr>
+    Expr unary(){
+        IToken firstToken = t;
+        Expr e = null;
+        if(isKind(Kind.BANG) || isKind(Kind.MINUS) || isKind(Kind.RES_sin) || isKind(Kind.RES_cos) || isKind(Kind.RES_atan)){
+            Kind op = t.getKind();
+            advance();
+            e = unary();
+        } else if (isKind(Kind.LPAREN)){
+            advance();
+            e = primary();
+            isKind(Kind.RPAREN);
+        }
+        // else error();
+
+        return e;
+    }
 
     // <primary_expr> ::= STRING_LIT | NUM_LIT | IDENT | ( <expr> ) | Z | rand
     Expr primary(){
@@ -93,124 +208,21 @@ public class Parser implements IParser{
         return e;
     }
 
-    //<unary_expr> ::= ( ! | - | sin | cos | atan) <unary_expr> |   <primary_expr>
-    Expr unary(){
-        IToken firstToken = t;
-        Expr e = null;
-        if(isKind(Kind.BANG) || isKind(Kind.MINUS) || isKind(Kind.RES_sin) || isKind(Kind.RES_cos) || isKind(Kind.RES_atan)){
-            Kind op = t.getKind();
-            advance();
-            e = unary();
-        } else if (isKind(Kind.LPAREN)){
-            advance();
-            e = primary();
-            isKind(Kind.RPAREN);
-        }
-       // else error();
-
-        return e;
-    }
-
-    // <multiplicative_expr> ::= <unary_expr> (( * | / | % ) <unary_expr>)*
-    Expr multiplicative(){
-        IToken firstToken = t;
-        Expr expr = unary();
-        Expr left = null;
-        Expr right = null;
-        left = unary();
-        while(isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)){
-            Kind op = t.getKind();
-            advance();
-             right = unary();
-             left = new BinaryExpr(firstToken,left,op,right);
-        }
-        return left;
-    }
-
-    // <additive_expr> ::=  <multiplicative_expr> ( ( + | - ) <multiplicative_expr> )*
-    Expr additive(){
-        IToken firstToken = t;
-        Expr expr = multiplicative();
-        Expr left = null;
-        Expr right = null;
-        left = multiplicative();
-        while(isKind(Kind.PLUS) || isKind(Kind.MINUS)){
-            Kind op = t.getKind();
-            advance();
-            right = multiplicative();
-            left = new BinaryExpr(firstToken,left,op,right);
-        }
-        return left;
-    }
-
-    // <power_expr> ::=    <additive_expr> ** <power_expr> |  <additive_expr>
-    Expr power(){
-        return null;
-    }
-
-    //<comparison_expr> ::=   <power_expr> ( (< | > | == | <= | >=) <power_expr>)*
-    Expr comparison() {
-        IToken firstToken = t;
-        Expr expr = power();
-        Expr left = null;
-        Expr right = null;
-        left = power();
-        while (isKind(Kind.GT) || isKind(Kind.GE) || isKind(Kind.LT) || isKind(Kind.LE) || isKind(Kind.EQ)) {
-            Kind op = t.getKind();
-            advance();
-            right = power();
-            left = new BinaryExpr(firstToken,left,op,right);
-        }
-
-        return left;
-    }
 
 
-    //<and_expr> ::=  <comparison_expr> ( ( & | && )  <comparison_expr>)*
-    Expr and() {
-        IToken firstToken = t;
-        Expr expr = comparison();
-        Expr left = null;
-        Expr right = null;
-        left = comparison();
-        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
-            Kind op = t.getKind();
-            advance();
-            right = comparison();
-            left = new BinaryExpr(firstToken,left,op,right);
-        }
-
-        return left;
-    }
-
-    //<or_expr> ::=  <and_expr> (  ( | | || ) <and_expr>)*
-    Expr or(){
-        IToken firstToken = t;
-        Expr expr = and();
-        Expr left = null;
-        Expr right = null;
-        left = and();
-        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
-            Kind op = t.getKind();
-            advance();
-            right = and();
-            left = new BinaryExpr(firstToken,left,op,right);
-        }
-
-        return left;
-    }
 
 
-    //<conditional_expr>  ::= if <expr> ? <expr> ? <expr>
-    Expr conditional() {
-    return null;
-    }
 
 
-    //<expr> ::=   <conditional_expr> | <or_expr>
-    Expr expression() {
-        return null;
-    }
+
+
+
+
+
+
+
+
+
 
 
 
