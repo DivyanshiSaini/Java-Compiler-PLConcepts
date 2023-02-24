@@ -10,6 +10,8 @@
 
 package edu.ufl.cise.plcsp23;
 
+import edu.ufl.cise.plcsp23.ast.Expr;
+
 import java.util.List;
 
 public class CompilerComponentFactory {
@@ -22,13 +24,10 @@ public class CompilerComponentFactory {
 	public static IParser makeAssignment2Parser(String input)
 			throws LexicalException {
 		//add code to create a scanner and parser and return the parser.
+
 		IScanner scanner = CompilerComponentFactory.makeScanner(input);
+		Parser parser = new Parser(scanner);
 
-		List<IToken.Kind> tokens = scanner.next().getKind();
-		//tokens.add(0,scanner.next());
-
-
-		//provide input as it enters constructor.
-		return new Parser(tokens); // constructor.
+		return parser; // constructor.
 	}
 }

@@ -20,13 +20,15 @@ public class Parser implements IParser{
         return null;
     }
 
-    //final String input;
-    private final List<Kind> tokens;
     private int current = 0; //index in the list
+
     IToken t;
 
-    Parser(List<Kind> tokens) {
-        this.tokens = tokens;
+    IScanner scanner;
+
+    Parser(IScanner s) throws LexicalException{
+        this.scanner = s;
+        t = scanner.next();
     }
 
 
@@ -35,30 +37,30 @@ public class Parser implements IParser{
     }
     protected boolean isKind(Kind... kinds) {
         for (Kind k : kinds) {
-            if (k == t.getKind())
-                advance(); //txt book
+            if (k == t.getKind()) {
                 return true;
+            }
         }
         return false;
     }
 
 
-    //primative operations
+    //primitive operations
     private boolean isAtEnd() {
-        return peek() == Kind.EOF;
+        return peek().getKind() == Kind.EOF;
     }
 
-    private Kind peek() {
-        return tokens.get(current);
+    private IToken peek() { //IToken //return t
+        return t;
     }
 
-    private Kind previous() {
+   /* private Kind previous() {
+        //
         return tokens.get(current - 1);
-    }
+    }*/
     //advance
-    private Kind advance() {
-        if (!isAtEnd()) current++;
-        return previous();
+    private void advance() throws LexicalException {
+        if (!isAtEnd()) t = scanner.next();
     }
     //check
 
@@ -75,7 +77,7 @@ public class Parser implements IParser{
     }
 
     //<or_expr> ::=  <and_expr> (  ( | | || ) <and_expr>)*
-    Expr or(){
+    public Expr or() throws PLCException{ //syntax and lex. in same
         IToken firstToken = t;
         Expr expr = and();
         Expr left = null;
@@ -92,7 +94,7 @@ public class Parser implements IParser{
     }
 
     //<and_expr> ::=  <comparison_expr> ( ( & | && )  <comparison_expr>)*
-    Expr and() {
+    public Expr and() throws PLCException{
         IToken firstToken = t;
         Expr expr = comparison();
         Expr left = null;
@@ -110,7 +112,7 @@ public class Parser implements IParser{
 
 
     //<comparison_expr> ::=   <power_expr> ( (< | > | == | <= | >=) <power_expr>)*
-    Expr comparison() {
+    public Expr comparison() throws PLCException{
         IToken firstToken = t;
         Expr expr = power();
         Expr left = null;
@@ -127,12 +129,12 @@ public class Parser implements IParser{
     }
 
     // <power_expr> ::=    <additive_expr> ** <power_expr> |  <additive_expr>
-    Expr power(){
+    public Expr power() throws PLCException{
         return null;
     }
 
     // <additive_expr> ::=  <multiplicative_expr> ( ( + | - ) <multiplicative_expr> )*
-    Expr additive(){
+    public Expr additive() throws PLCException{
         IToken firstToken = t;
         Expr expr = multiplicative();
         Expr left = null;
@@ -148,7 +150,7 @@ public class Parser implements IParser{
     }
 
     // <multiplicative_expr> ::= <unary_expr> (( * | / | % ) <unary_expr>)*
-    Expr multiplicative(){
+    public Expr multiplicative() throws PLCException{
         IToken firstToken = t;
         Expr expr = unary();
         Expr left = null;
@@ -164,7 +166,7 @@ public class Parser implements IParser{
     }
 
     //<unary_expr> ::= ( ! | - | sin | cos | atan) <unary_expr> |   <primary_expr>
-    Expr unary(){
+    public Expr unary() throws PLCException{
         IToken firstToken = t;
         Expr e = null;
         if(isKind(Kind.BANG, Kind.MINUS, Kind.RES_sin, Kind.RES_cos ,Kind.RES_atan)){
@@ -182,7 +184,7 @@ public class Parser implements IParser{
     }
 
     // <primary_expr> ::= STRING_LIT | NUM_LIT | IDENT | ( <expr> ) | Z | rand
-    Expr primary(){
+    public Expr primary() throws PLCException{
         IToken firstToken = t;
         Expr e = null;
         if(isKind(Kind.STRING_LIT)){
