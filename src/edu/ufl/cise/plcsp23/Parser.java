@@ -17,18 +17,16 @@ import java.util.List;
 public class Parser implements IParser{
     @Override
     public AST parse() throws PLCException {
+       // throw new PLCException("EXCEPTION REACHED");
         return null;
     }
 
-    private int current = 0; //index in the list
-
     IToken t;
-
-    IScanner scanner;
+    IScanner scan;
 
     Parser(IScanner s) throws LexicalException{
-        this.scanner = s;
-        t = scanner.next();
+        this.scan = s;
+        t = scan.next();
     }
 
 
@@ -60,53 +58,74 @@ public class Parser implements IParser{
     }*/
     //advance
     private void advance() throws LexicalException {
-        if (!isAtEnd()) t = scanner.next();
+        if (!isAtEnd()) t = scan.next();
     }
+
+    private void match(Kind c) throws PLCException{
+        if(t.getKind() == c){
+            advance();
+        } else{
+           //error
+            throw new SyntaxException("Error");
+        }
+    }
+
     //check
 
 
 
     //<expr> ::=   <conditional_expr> | <or_expr>
-    Expr expression() {
-        return null;
+    public Expr expression() throws PLCException {
+        IToken fToken = t;
+        Expr e = null;
+        if(isKind(Kind.LPAREN)){
+            advance();
+            e = conditional();
+            match(Kind.RPAREN);
+        } else if (isKind(Kind.LPAREN)){
+            advance();
+            e = or();
+            match(Kind.RPAREN);
+        } else {
+            throw new SyntaxException("Error");
+            //error;
+        }
+        return e;
     }
 
     //<conditional_expr>  ::= if <expr> ? <expr> ? <expr>
-    Expr conditional() {
+    public Expr conditional() throws PLCException{
+
         return null;
     }
 
     //<or_expr> ::=  <and_expr> (  ( | | || ) <and_expr>)*
     public Expr or() throws PLCException{ //syntax and lex. in same
         IToken firstToken = t;
-        Expr expr = and();
         Expr left = null;
         Expr right = null;
         left = and();
-        while ( isKind(Kind.ASSIGN, Kind.EQ)) {
-            Kind op = t.getKind();
+        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+            IToken op = t;
             advance();
             right = and();
-            left = new BinaryExpr(firstToken,left,op,right);
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
         }
-
         return left;
     }
 
     //<and_expr> ::=  <comparison_expr> ( ( & | && )  <comparison_expr>)*
     public Expr and() throws PLCException{
         IToken firstToken = t;
-        Expr expr = comparison();
         Expr left = null;
         Expr right = null;
         left = comparison();
-        while ( isKind(Kind.ASSIGN, Kind.EQ)) {
-            Kind op = t.getKind();
+        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+            IToken op = t;
             advance();
             right = comparison();
-            left = new BinaryExpr(firstToken,left,op,right);
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
         }
-
         return left;
     }
 
@@ -114,17 +133,15 @@ public class Parser implements IParser{
     //<comparison_expr> ::=   <power_expr> ( (< | > | == | <= | >=) <power_expr>)*
     public Expr comparison() throws PLCException{
         IToken firstToken = t;
-        Expr expr = power();
         Expr left = null;
         Expr right = null;
         left = power();
-        while (isKind(Kind.GT, Kind.GE, Kind.LT, Kind.LE, Kind.EQ)) {
-            Kind op = t.getKind();
+        while (isKind(Kind.GT) || isKind(Kind.GE)|| isKind(Kind.LT) || isKind(Kind.LE) || isKind(Kind.EQ)) {
+            IToken op = t;
             advance();
             right = power();
-            left = new BinaryExpr(firstToken,left,op,right);
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
         }
-
         return left;
     }
 
@@ -136,15 +153,14 @@ public class Parser implements IParser{
     // <additive_expr> ::=  <multiplicative_expr> ( ( + | - ) <multiplicative_expr> )*
     public Expr additive() throws PLCException{
         IToken firstToken = t;
-        Expr expr = multiplicative();
         Expr left = null;
         Expr right = null;
         left = multiplicative();
-        while(isKind(Kind.PLUS , Kind.MINUS)){
-            Kind op = t.getKind();
+        while(isKind(Kind.PLUS) || isKind(Kind.MINUS)){
+            IToken op = t;
             advance();
             right = multiplicative();
-            left = new BinaryExpr(firstToken,left,op,right);
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
         }
         return left;
     }
@@ -152,15 +168,14 @@ public class Parser implements IParser{
     // <multiplicative_expr> ::= <unary_expr> (( * | / | % ) <unary_expr>)*
     public Expr multiplicative() throws PLCException{
         IToken firstToken = t;
-        Expr expr = unary();
         Expr left = null;
         Expr right = null;
         left = unary();
-        while(isKind(Kind.TIMES, Kind.DIV, Kind.MOD)){
-            Kind op = t.getKind();
+        while(isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)){
+            IToken op = t;
             advance();
             right = unary();
-            left = new BinaryExpr(firstToken,left,op,right);
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
         }
         return left;
     }
@@ -169,14 +184,17 @@ public class Parser implements IParser{
     public Expr unary() throws PLCException{
         IToken firstToken = t;
         Expr e = null;
-        if(isKind(Kind.BANG, Kind.MINUS, Kind.RES_sin, Kind.RES_cos ,Kind.RES_atan)){
-            Kind op = t.getKind();
+        if(isKind(Kind.BANG) || isKind(Kind.MINUS) || isKind(Kind.RES_sin) || isKind(Kind.RES_cos) || isKind(Kind.RES_atan)){
+            IToken op = t;
             advance();
             e = unary();
         } else if (isKind(Kind.LPAREN)){
             advance();
             e = primary();
             isKind(Kind.RPAREN);
+        }else {
+            //error();}
+            throw new SyntaxException("Error");
         }
         // else error();
 
@@ -201,59 +219,15 @@ public class Parser implements IParser{
             e = expression();
             isKind(Kind.RPAREN);
         } else if (isKind(Kind.RES_Z)) {
-            e =new IdentExpr(firstToken);
+            e = new IdentExpr(firstToken);
             advance();
         } else if (isKind(Kind.RES_rand)) {
             e =new IdentExpr(firstToken);
             advance();
         } else {
             //error();}
+            throw new SyntaxException("Error");
         }
         return e;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
