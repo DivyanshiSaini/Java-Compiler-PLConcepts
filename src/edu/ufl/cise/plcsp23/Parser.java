@@ -17,11 +17,7 @@ import java.util.List;
 public class Parser implements IParser{
     @Override
     public AST parse() throws PLCException {
-        try {
-            return expression();
-        } catch (PLCException error) {
-            throw new SyntaxException("Error");
-        }
+        return expression();
     }
 
     IToken t;
@@ -55,11 +51,6 @@ public class Parser implements IParser{
         return t;
     }
 
-   /* private Kind previous() {
-        //
-        return tokens.get(current - 1);
-    }*/
-    //advance
     private void advance() throws LexicalException {
         if (!isAtEnd()) t = scan.next();
     }
@@ -81,17 +72,18 @@ public class Parser implements IParser{
     public Expr expression() throws PLCException {
         IToken fToken = t;
         Expr e = null;
-        if(isKind(Kind.LPAREN)){
-            advance();
+        if(isKind(Kind.RES_if)){
+            match(Kind.LPAREN);
             e = conditional();
             match(Kind.RPAREN);
-        } else if (isKind(Kind.LPAREN)){
-            advance();
-            e = or();
-            match(Kind.RPAREN);
         } else {
-            throw new SyntaxException("Error");
-            //error;
+            if(isKind(Kind.LPAREN)){
+                advance();
+                e = or();
+                match(Kind.RPAREN);
+            } else {
+                throw new SyntaxException("Error");
+            }
         }
         return e;
     }
@@ -100,19 +92,21 @@ public class Parser implements IParser{
     public Expr conditional() throws PLCException{
         IToken firstToken = t;
         Expr e = null;
-        if (peek().getTokenString() == "if"){
+        if (isKind(Kind.RES_if)){ // isKind
             Expr gaurd = expression();
             advance();
-            if(peek().getTokenString() == "?") {
+            if(isKind(Kind.QUESTION)) {
                 Expr trueC = expression();
                 advance();
-                if (peek().getTokenString() == "?") {
+                if (isKind(Kind.QUESTION)) {
                     Expr falseC = expression();
                     advance();
                     e = new ConditionalExpr(firstToken,gaurd,trueC,falseC);
                 }
-
             }
+        } else{
+            throw new SyntaxException("Error");
+
         }
         return e;
     }
@@ -123,7 +117,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = and();
-        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+        while ( isKind(Kind.BITOR) || isKind(Kind.OR)) {
             IToken op = t;
             advance();
             right = and();
@@ -138,7 +132,7 @@ public class Parser implements IParser{
         Expr left = null;
         Expr right = null;
         left = comparison();
-        while ( isKind(Kind.ASSIGN) || isKind(Kind.EQ)) {
+        while ( isKind(Kind.BITAND) || isKind(Kind.AND)) {
             IToken op = t;
             advance();
             right = comparison();
@@ -164,8 +158,26 @@ public class Parser implements IParser{
     }
 
     // <power_expr> ::=    <additive_expr> ** <power_expr> |  <additive_expr>
+    // power_expr = additive_expr(**(power_expr) |  ε)
+
+
     public Expr power() throws PLCException{
-        return null;
+        IToken firstToken = t;
+        Expr left = null;
+        Expr right = null;
+        left = additive();
+        if (isKind(Kind.EXP)){
+            IToken op = t;
+            advance();
+            right = power();
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
+        } else{
+            IToken op = t;
+            advance();
+            right = null;
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);
+        }
+        return left;
     }
 
     // <additive_expr> ::=  <multiplicative_expr> ( ( + | - ) <multiplicative_expr> )*
@@ -241,7 +253,6 @@ public class Parser implements IParser{
             e =new IdentExpr(firstToken);
             advance();
         } else {
-            //error();}
             throw new SyntaxException("Error");
         }
         return e;
