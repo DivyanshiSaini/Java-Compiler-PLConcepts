@@ -82,14 +82,15 @@ public class Parser implements IParser{
         IToken firstToken = t;
         Expr e = null;
         if (isKind(Kind.RES_if)){ // isKind
-            Expr gaurd = expression();
             advance();
+            Expr gaurd = expression();
+            //advance();
             if(isKind(Kind.QUESTION)) {
-                Expr trueC = expression();
                 advance();
+                Expr trueC = expression();
                 if (isKind(Kind.QUESTION)) {
-                    Expr falseC = expression();
                     advance();
+                    Expr falseC = expression();
                     e = new ConditionalExpr(firstToken,gaurd,trueC,falseC);
                 }
             }
