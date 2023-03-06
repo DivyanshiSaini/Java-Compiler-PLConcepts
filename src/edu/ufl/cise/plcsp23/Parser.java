@@ -17,8 +17,11 @@ import java.util.List;
 public class Parser implements IParser{
     @Override
     public AST parse() throws PLCException {
-       // throw new PLCException("EXCEPTION REACHED");
-        return null;
+        try {
+            return expression();
+        } catch (PLCException error) {
+            throw new SyntaxException("Error");
+        }
     }
 
     IToken t;
@@ -61,12 +64,12 @@ public class Parser implements IParser{
         if (!isAtEnd()) t = scan.next();
     }
 
-    private void match(Kind c) throws PLCException{
+    private void match(Kind c) throws LexicalException{
         if(t.getKind() == c){
             advance();
         } else{
            //error
-            throw new SyntaxException("Error");
+            throw new LexicalException("Error");
         }
     }
 
@@ -95,7 +98,10 @@ public class Parser implements IParser{
 
     //<conditional_expr>  ::= if <expr> ? <expr> ? <expr>
     public Expr conditional() throws PLCException{
-
+        IToken firstToken = t;
+        if (firstToken.getTokenString() == "if"){
+            return null;
+        }
         return null;
     }
 
