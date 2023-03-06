@@ -186,18 +186,16 @@ public class Parser implements IParser{
         Expr e = null;
         if(isKind(Kind.BANG) || isKind(Kind.MINUS) || isKind(Kind.RES_sin) || isKind(Kind.RES_cos) || isKind(Kind.RES_atan)){
             IToken op = t;
-            advance();
-            e = unary();
+            //advance();
+            Expr right = unary();
+            e = new UnaryExpr(firstToken,op.getKind(),right);
         } else if (isKind(Kind.LPAREN)){
             advance();
             e = primary();
-            isKind(Kind.RPAREN);
+            match(Kind.RPAREN);
         }else {
-            //error();}
             throw new SyntaxException("Error");
         }
-        // else error();
-
         return e;
     }
 
@@ -217,7 +215,7 @@ public class Parser implements IParser{
         } else if (isKind(Kind.LPAREN)){
             advance();
             e = expression();
-            isKind(Kind.RPAREN);
+            match(Kind.RPAREN);
         } else if (isKind(Kind.RES_Z)) {
             e = new IdentExpr(firstToken);
             advance();
