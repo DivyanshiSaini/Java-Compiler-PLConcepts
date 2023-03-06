@@ -29,13 +29,13 @@ public class Parser implements IParser{
     }
 
 
-    protected boolean isKind(Kind kind) {
+    protected boolean isKind(Kind kind) throws LexicalException {
         return t.getKind() == kind;
     }
     protected boolean isKind(Kind... kinds) {
         for (Kind k : kinds) {
             if (k == t.getKind()) {
-                return true;
+               return true;
             }
         }
         return false;
@@ -59,31 +59,20 @@ public class Parser implements IParser{
         if(t.getKind() == c){
             advance();
         } else{
-           //error
             throw new LexicalException("Error");
         }
     }
 
-    //check
 
 
 
     //<expr> ::=   <conditional_expr> | <or_expr>
     public Expr expression() throws PLCException {
-        IToken fToken = t;
         Expr e = null;
         if(isKind(Kind.RES_if)){
-            match(Kind.LPAREN);
             e = conditional();
-            match(Kind.RPAREN);
         } else {
-            if(isKind(Kind.LPAREN)){
-                advance();
-                e = or();
-                match(Kind.RPAREN);
-            } else {
-                throw new SyntaxException("Error");
-            }
+            e = or();
         }
         return e;
     }
@@ -172,10 +161,11 @@ public class Parser implements IParser{
             right = power();
             left = new BinaryExpr(firstToken,left,op.getKind(),right);
         } else{
-            IToken op = t;
+            return additive();
+            /*IToken op = t;
             advance();
             right = null;
-            left = new BinaryExpr(firstToken,left,op.getKind(),right);
+            left = new BinaryExpr(firstToken,left,op.getKind(),right);*/
         }
         return left;
     }
@@ -216,7 +206,7 @@ public class Parser implements IParser{
         Expr e = null;
         if(isKind(Kind.BANG) || isKind(Kind.MINUS) || isKind(Kind.RES_sin) || isKind(Kind.RES_cos) || isKind(Kind.RES_atan)){
             IToken op = t;
-            //advance();
+            advance();
             Expr right = unary();
             e = new UnaryExpr(firstToken,op.getKind(),right);
         } else if (isKind(Kind.LPAREN)){
