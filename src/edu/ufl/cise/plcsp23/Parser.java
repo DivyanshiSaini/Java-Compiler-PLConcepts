@@ -82,14 +82,14 @@ public class Parser implements IParser{
         IToken firstToken = t;
         Expr e = null;
         if (isKind(Kind.RES_if)){ // isKind
-            Expr gaurd = expression();
             advance();
+            Expr gaurd = expression();
             if(isKind(Kind.QUESTION)) {
-                Expr trueC = expression();
                 advance();
+                Expr trueC = expression();
                 if (isKind(Kind.QUESTION)) {
-                    Expr falseC = expression();
                     advance();
+                    Expr falseC = expression();
                     e = new ConditionalExpr(firstToken,gaurd,trueC,falseC);
                 }
             }
@@ -209,12 +209,8 @@ public class Parser implements IParser{
             advance();
             Expr right = unary();
             e = new UnaryExpr(firstToken,op.getKind(),right);
-        } else if (isKind(Kind.LPAREN)){
-            advance();
+        } else{
             e = primary();
-            match(Kind.RPAREN);
-        }else {
-            throw new SyntaxException("Error");
         }
         return e;
     }
