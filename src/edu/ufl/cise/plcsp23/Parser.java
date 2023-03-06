@@ -95,7 +95,6 @@ public class Parser implements IParser{
             }
         } else{
             throw new SyntaxException("Error");
-
         }
         return e;
     }
@@ -227,10 +226,10 @@ public class Parser implements IParser{
             match(Kind.RPAREN);
         } else if (isKind(Kind.RES_Z)) {
             advance();
-            e = new IdentExpr(firstToken);
+            e = new ZExpr(firstToken);
         } else if (isKind(Kind.RES_rand)) {
             advance();
-            e = new IdentExpr(firstToken);
+            e = new RandomExpr(firstToken);
         } else {
             throw new SyntaxException("Error");
         }
