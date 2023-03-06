@@ -31,7 +31,12 @@ public class CompilerComponentFactory {
 	}
 
 
-	public static IParser makeParser(String input) {
+	public static IParser makeParser(String input) throws LexicalException {
+			//add code to create a scanner and parser and return the parser.
+		IScanner scanner = CompilerComponentFactory.makeScanner(input);
+		Parser parser = new Parser(scanner);
+
+		return parser; // constructor.
 
 	}
 }
