@@ -29,4 +29,9 @@ public class CompilerComponentFactory {
 
 		return parser; // constructor.
 	}
+
+
+	public static IParser makeParser(String input) {
+
+	}
 }
