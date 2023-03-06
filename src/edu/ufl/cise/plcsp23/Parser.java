@@ -82,14 +82,14 @@ public class Parser implements IParser{
         IToken firstToken = t;
         Expr e = null;
         if (isKind(Kind.RES_if)){ // isKind
-            advance();
             Expr gaurd = expression();
+            advance();
             if(isKind(Kind.QUESTION)) {
-                advance();
                 Expr trueC = expression();
+                advance();
                 if (isKind(Kind.QUESTION)) {
-                    advance();
                     Expr falseC = expression();
+                    advance();
                     e = new ConditionalExpr(firstToken,gaurd,trueC,falseC);
                 }
             }
@@ -148,8 +148,6 @@ public class Parser implements IParser{
 
     // <power_expr> ::=    <additive_expr> ** <power_expr> |  <additive_expr>
     // power_expr = additive_expr(**(power_expr) |  ε)
-
-
     public Expr power() throws PLCException{
         IToken firstToken = t;
         Expr left = null;
@@ -160,12 +158,6 @@ public class Parser implements IParser{
             advance();
             right = power();
             left = new BinaryExpr(firstToken,left,op.getKind(),right);
-        } else{
-            return additive();
-            /*IToken op = t;
-            advance();
-            right = null;
-            left = new BinaryExpr(firstToken,left,op.getKind(),right);*/
         }
         return left;
     }
@@ -220,24 +212,25 @@ public class Parser implements IParser{
         IToken firstToken = t;
         Expr e = null;
         if(isKind(Kind.STRING_LIT)){
+            advance();
             e = new StringLitExpr(firstToken);
-            advance();
+
         } else if (isKind(Kind.NUM_LIT)) {
+            advance();
             e = new NumLitExpr(firstToken);
-            advance();
         } else if (isKind(Kind.IDENT)) {
-            e =new IdentExpr(firstToken);
             advance();
+            e = new IdentExpr(firstToken);
         } else if (isKind(Kind.LPAREN)){
             advance();
             e = expression();
             match(Kind.RPAREN);
         } else if (isKind(Kind.RES_Z)) {
+            advance();
             e = new IdentExpr(firstToken);
-            advance();
         } else if (isKind(Kind.RES_rand)) {
-            e =new IdentExpr(firstToken);
             advance();
+            e = new IdentExpr(firstToken);
         } else {
             throw new SyntaxException("Error");
         }
