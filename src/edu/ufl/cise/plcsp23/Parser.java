@@ -99,10 +99,22 @@ public class Parser implements IParser{
     //<conditional_expr>  ::= if <expr> ? <expr> ? <expr>
     public Expr conditional() throws PLCException{
         IToken firstToken = t;
-        if (firstToken.getTokenString() == "if"){
-            return null;
+        Expr e = null;
+        if (peek().getTokenString() == "if"){
+            Expr gaurd = expression();
+            advance();
+            if(peek().getTokenString() == "?") {
+                Expr trueC = expression();
+                advance();
+                if (peek().getTokenString() == "?") {
+                    Expr falseC = expression();
+                    advance();
+                    e = new ConditionalExpr(firstToken,gaurd,trueC,falseC);
+                }
+
+            }
         }
-        return null;
+        return e;
     }
 
     //<or_expr> ::=  <and_expr> (  ( | | || ) <and_expr>)*
