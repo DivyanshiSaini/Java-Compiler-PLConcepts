@@ -84,7 +84,6 @@ public class Parser implements IParser{
         if (isKind(Kind.RES_if)){ // isKind
             advance();
             Expr gaurd = expression();
-            //advance();
             if(isKind(Kind.QUESTION)) {
                 advance();
                 Expr trueC = expression();
@@ -92,7 +91,11 @@ public class Parser implements IParser{
                     advance();
                     Expr falseC = expression();
                     e = new ConditionalExpr(firstToken,gaurd,trueC,falseC);
+                }else{
+                    throw new SyntaxException("Error");
                 }
+            }else{
+                throw new SyntaxException("Error");
             }
         } else{
             throw new SyntaxException("Error");
@@ -224,7 +227,11 @@ public class Parser implements IParser{
         } else if (isKind(Kind.LPAREN)){
             advance();
             e = expression();
-            match(Kind.RPAREN);
+            if (!isKind(Kind.RPAREN)){
+              throw new SyntaxException("Error");
+            } else{
+                advance();
+            }
         } else if (isKind(Kind.RES_Z)) {
             advance();
             e = new ZExpr(firstToken);
