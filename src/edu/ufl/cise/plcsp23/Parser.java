@@ -196,8 +196,29 @@ public class Parser implements IParser {
             Expr right = unary();
             e = new UnaryExpr(firstToken, op.getKind(), right);
         } else {
-            e = primary();
+            e = unaryExprPostFix();
         }
+        return e;
+    }
+
+
+    //UnaryExprPostfix::= PrimaryExpr (PixelSelector | ε ) (ChannelSelector | ε )
+    public UnaryExprPostfix unaryExprPostFix() throws PLCException{
+        IToken firstToken = t;
+        Expr id = primary();
+        UnaryExprPostfix e = null;
+        PixelSelector pi = null;
+        ColorChannel ch = null;
+
+        if(isKind(Kind.LSQUARE)){
+            advance();
+            pi = pixelSelector();
+            if(isKind(Kind.COLON)){
+                advance();
+                ch = channelSelector();
+                e = new UnaryExprPostfix(firstToken,id,pi,ch);
+            }else {throw new SyntaxException("Error");}
+        }else {throw new SyntaxException("Error");}
         return e;
     }
 
@@ -252,42 +273,27 @@ public class Parser implements IParser {
         }
         return e;
     }
-    //UnaryExprPostfix::= PrimaryExpr (PixelSelector | ε ) (ChannelSelector | ε )
-    public Expr unaryExprPostFix() throws PLCException{
-        IToken firstToken = t;
-        Expr id = primary();
-        Expr e = null;
-        PixelSelector pi = null;
-        ColorChannel ch = null;
 
-        if(isKind(Kind.LSQUARE)){
-            advance();
-            pi = pixelSelector();
-            //Expr pi = new PixelSelector(firstToken,id,e);
-            if(isKind(Kind.COLON)){
-                advance();
-                ch = channelSelector();
-                e = new UnaryExprPostfix(firstToken,id,pi,ch);
-            }else {throw new SyntaxException("Error");}
-        }else {throw new SyntaxException("Error");}
-        return e;
-    }
 
     //ChannelSelector ::= : red | : grn | : blu
     public ColorChannel channelSelector() throws PLCException{
         IToken firstToken = t;
-        //Expr e = null;
-        if (isKind(Kind.RES_if)) { // isKind
+        ColorChannel e = null;
+        if (isKind(Kind.COLON)) { // isKind
             advance();
             if(isKind(Kind.RES_red)){
-                IToken color = t;
-                enum ColorChannel(IToken.SourceLocation);
+                advance();
+                e = ColorChannel.getColor(firstToken);
             }
             else if(isKind(Kind.RES_blu)){
-
+                advance();
+                e = ColorChannel.getColor(firstToken);
             }
             else if(isKind(Kind.RES_grn)){
-
+                advance();
+                e = ColorChannel.getColor(firstToken);
+            } else{
+                throw new PLCException("Error");
             }
         }
         return e;
@@ -306,9 +312,9 @@ public class Parser implements IParser {
                 if(isKind(Kind.RSQUARE)){
                     advance();
                     e = new PixelSelector(firstToken,x,y);
-                } //else error
-            } //else error
-        } //else error
+                } else {throw new SyntaxException("Error");}//else error
+            } else {throw new SyntaxException("Error");}//else error
+        } else {throw new SyntaxException("Error");}//else error
         return e;
     }
 
@@ -328,34 +334,33 @@ public class Parser implements IParser {
                     if(isKind(Kind.RSQUARE)){
                         advance();
                         e = new ExpandedPixelExpr(firstToken,r,g,b);
-                    } //else error
-                } //else error
-            } //else error
-        } //else error
+                    } else {throw new SyntaxException("Error");}
+                } else {throw new SyntaxException("Error");}//else error
+            } else {throw new SyntaxException("Error");}//else error
+        } else {throw new SyntaxException("Error");}//else error
         return e;
     }
 
     //PixelFunctionExpr ::= ( x_cart | y_cart | a_polar | r_polar ) PixelSelector
-    public Expr pixelFunctionExpr() throws PLCException{
+    public PixelFuncExpr pixelFunctionExpr() throws PLCException{
         IToken firstToken = t;
-        Expr e = null;
+        PixelFuncExpr e = null;
         if (isKind(Kind.RES_x_cart) || isKind(Kind.RES_y_cart) || isKind(Kind.RES_a_polar) || isKind(Kind.RES_r_polar)) {
             IToken op = t;
             advance();
-            Expr right = pixelSelector();
-            e = new UnaryExpr(firstToken, op.getKind(), right);
-        }else {
-            throw new SyntaxException("Error");
-        }
+            PixelSelector right = pixelSelector();
+            e = new PixelFuncExpr(firstToken, op.getKind(), right);
+        }else {throw new SyntaxException("Error");}
+
         return e;
-    } //should be solid
+    }
 
 
     //Dimension  ::= [ Expr , Expr ]
-    public Expr dimension() throws PLCException{
+    public Dimension dimension() throws PLCException{
         IToken firstToken = t;
-        Expr e = null;
-        if (isKind(Kind.RES_if)) { // isKind
+        Dimension e = null;
+        if (isKind(Kind.LSQUARE)) { // isKind
             advance();
             Expr w = expression();
             if(isKind(Kind.COMMA)){
@@ -364,9 +369,9 @@ public class Parser implements IParser {
                 if(isKind(Kind.RSQUARE)){
                     advance();
                     e = new Dimension(firstToken,w,h);
-                } //else error
-            } //else error
-        } //else error
+                } else{throw new PLCException("Error");}
+            } else{throw new PLCException("Error");}//else error
+        } else{throw new PLCException("Error");}//else error
         return e;
     }
 
@@ -374,15 +379,15 @@ public class Parser implements IParser {
 
 
     //LValue ::= IDENT (PixelSelector | ε ) (ChannelSelector | ε )
-    public Expr lValue() throws PLCException{
+    public LValue lValue() throws PLCException{
         IToken firstToken = t;
-        Expr id = null;
-        Expr e = null;
-        Expr pi = null;
-        Expr ch = null;
+        Ident id = null;
+        LValue e = null;
+        PixelSelector pi = null;
+        ColorChannel ch = null;
         if (isKind(Kind.IDENT)) {
             advance();
-            id = new IdentExpr(firstToken);
+            id = new Ident(firstToken);
             if(isKind(Kind.LSQUARE)){
                 advance();
                 pi = pixelSelector();
@@ -391,43 +396,38 @@ public class Parser implements IParser {
                     advance();
                     ch = channelSelector();
                     e = new LValue(firstToken,id,pi,ch);
-                }else {
-                    throw new SyntaxException("Error");
-                }
-            }else {
-                throw new SyntaxException("Error");
-            }
-        }else {
-            throw new SyntaxException("Error");
-        }
+                }else {throw new SyntaxException("Error");}
+            }else {throw new SyntaxException("Error");}
+        }else {throw new SyntaxException("Error");}
+
         return e;
     }
 
 
 
     // Statement::= LValue = Expr | write Expr | while Expr Block
-    public Expr statement() throws PLCException {
+    public Statement statement() throws PLCException {
         IToken firstToken = t;
-        Expr left = null;
-        Expr right = null;
-        left = lValue();
+        Expr e = null;
+        LValue l = null;
+        l = lValue();
 
          if (isKind(Kind.ASSIGN)) {
-             IToken op = t;
              advance();
-             right = expression();
-             return new BinaryExpr(firstToken, left, op.getKind(), right);
-         }
-         if(isKind(Kind.RES_write)){
-             Expr e = expression();
-             return new WriteStatement(firstToken,e);
-         }
-        if(isKind(Kind.RES_while)){
+             e = expression();
+             AssignmentStatement a = new AssignmentStatement(firstToken,l,e);
+             return a;
+         }else if(isKind(Kind.RES_write)){
+             advance();
+             e = expression();
+             WriteStatement w =  new WriteStatement(firstToken,e);
+             return w;
+         }else if(isKind(Kind.RES_while)){
             advance();
-            Expr l = expression();
-            Expr r = block();
-            return new WhileStatement(firstToken, l, r);
-        }
+            e = expression();
+            Block r = block();
+            return new WhileStatement(firstToken, e, r);
+        } else { throw new SyntaxException("Error");}
 
 
     }
