@@ -229,22 +229,59 @@ public class Parser implements IParser {
         } else if (isKind(Kind.RES_rand)) {
             advance();
             e = new RandomExpr(firstToken);
+        } else if (isKind(Kind.RES_rand)) {
+            advance();
+            e = new RandomExpr(firstToken);
+        }else if (isKind(Kind.RES_x)) {
+            advance();
+            e = new RandomExpr(firstToken);
+        }else if (isKind(Kind.RES_y)) {
+            advance();
+            e = new RandomExpr(firstToken);
+        }else if (isKind(Kind.RES_a)) {
+            advance();
+            e = new RandomExpr(firstToken);
+        } else if (isKind(Kind.RES_r)) {
+            advance();
+            e = new RandomExpr(firstToken);
+        }else if (isKind(Kind.LSQUARE)) {
+            e = expandedPixel();
         } else {
-            throw new SyntaxException("Error");
+            e = pixelFunctionExpr();
+            //throw new SyntaxException("Error");
         }
         return e;
     }
+    //UnaryExprPostfix::= PrimaryExpr (PixelSelector | ε ) (ChannelSelector | ε )
+    public Expr unaryExprPostFix() throws PLCException{
+        IToken firstToken = t;
+        Expr id = primary();
+        Expr e = null;
+        PixelSelector pi = null;
+        ColorChannel ch = null;
 
+        if(isKind(Kind.LSQUARE)){
+            advance();
+            pi = pixelSelector();
+            //Expr pi = new PixelSelector(firstToken,id,e);
+            if(isKind(Kind.COLON)){
+                advance();
+                ch = channelSelector();
+                e = new UnaryExprPostfix(firstToken,id,pi,ch);
+            }else {throw new SyntaxException("Error");}
+        }else {throw new SyntaxException("Error");}
+        return e;
+    }
 
     //ChannelSelector ::= : red | : grn | : blu
-    public void channelSelector() throws PLCException{
+    public ColorChannel channelSelector() throws PLCException{
         IToken firstToken = t;
         //Expr e = null;
         if (isKind(Kind.RES_if)) { // isKind
             advance();
             if(isKind(Kind.RES_red)){
                 IToken color = t;
-                enum ColorChannel(color);
+                enum ColorChannel(IToken.SourceLocation);
             }
             else if(isKind(Kind.RES_blu)){
 
@@ -257,9 +294,9 @@ public class Parser implements IParser {
     }
 
     //PixelSelector  ::= [ Expr , Expr ]
-    public Expr pixelSelector() throws PLCException{
+    public PixelSelector pixelSelector() throws PLCException{
         IToken firstToken = t;
-        Expr e = null;
+        PixelSelector e = null;
         if (isKind(Kind.LSQUARE)) { // isKind
             advance();
             Expr x = expression();
