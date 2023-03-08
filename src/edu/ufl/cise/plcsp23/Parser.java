@@ -341,11 +341,9 @@ public class Parser implements IParser {
         ColorChannel ch = null;
 
         if(isKind(Kind.LSQUARE)){
-            advance();
             pi = pixelSelector();
         }
         if(isKind(Kind.COLON)){
-            advance();
             ch = channelSelector();
 
         }
@@ -399,10 +397,9 @@ public class Parser implements IParser {
             e = new RandomExpr(firstToken);
         }else if (isKind(Kind.LSQUARE)) {
             e = expandedPixel();
-        } else {
+        } else if (isKind(Kind.RES_x_cart) || isKind(Kind.RES_y_cart) || isKind(Kind.RES_a_polar) || isKind(Kind.RES_r_polar)) {
             e = pixelFunctionExpr();
-            //throw new SyntaxException("Error");
-        }
+        } else { throw new SyntaxException("Error");}
         return e;
     }
 
