@@ -154,9 +154,11 @@ public class Parser implements IParser {
         if (isKind(Kind.LSQUARE)) {
             d = dimension();
         }
-        id = new Ident(t);
-        advance();
-        ndef = new NameDef(t, type, d, id);
+        if(t.getKind() == Kind.IDENT){
+            id = new Ident(t);
+            advance();
+            ndef = new NameDef(t, type, d, id);
+        } else{throw new SyntaxException("Error");}
 
         return ndef;
     }
@@ -427,7 +429,7 @@ public class Parser implements IParser {
             } else{
                 throw new SyntaxException("Error");
             }
-        }
+        } else { throw new SyntaxException("Error");}
         return e;
     }
 
