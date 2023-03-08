@@ -514,19 +514,15 @@ public class Parser implements IParser {
         PixelSelector pi = null;
         ColorChannel ch = null;
         if (isKind(Kind.IDENT)) {
-            //advance();
             id = new Ident(t);
             advance();
             if(isKind(Kind.LSQUARE)){
-                advance();
                 pi = pixelSelector();
-                //Expr pi = new PixelSelector(firstToken,id,e);
-                if(isKind(Kind.COLON)){
-                    advance();
-                    ch = channelSelector();
-                    e = new LValue(firstToken,id,pi,ch);
-                }else {throw new SyntaxException("Error");}
-            }else {throw new SyntaxException("Error");}
+            }
+            if(isKind(Kind.COLON)){
+                ch = channelSelector();
+            }
+            e = new LValue(firstToken,id,pi,ch);
         }else {throw new SyntaxException("Error");}
 
         return e;
