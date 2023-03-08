@@ -107,7 +107,7 @@ public class Parser implements IParser {
             if(isKind(Kind.DOT)){
                 advance();
                 list.add(de);
-            }
+            } else {throw new SyntaxException("Error");}
         }
         return list;
     }
@@ -121,7 +121,7 @@ public class Parser implements IParser {
             if(isKind(Kind.DOT)){
                 advance();
                 list.add(s);
-            }
+            } else {throw new SyntaxException("Error");}
         }
         return list;
     }
