@@ -343,12 +343,14 @@ public class Parser implements IParser {
         if(isKind(Kind.LSQUARE)){
             advance();
             pi = pixelSelector();
-            if(isKind(Kind.COLON)){
-                advance();
-                ch = channelSelector();
-                e = new UnaryExprPostfix(firstToken,id,pi,ch);
-            }else {throw new SyntaxException("Error");}
-        }else {throw new SyntaxException("Error");}
+        }
+        if(isKind(Kind.COLON)){
+            advance();
+            ch = channelSelector();
+
+        }
+        e = new UnaryExprPostfix(firstToken,id,pi,ch);
+
         return e;
     }
 
@@ -534,23 +536,26 @@ public class Parser implements IParser {
         IToken firstToken = t;
         Expr e = null;
         LValue l = null;
-        l = lValue();
+        Statement a = null;
 
-         if (isKind(Kind.ASSIGN)) {
+        if(isKind(Kind.IDENT)){
+            l = lValue();
+            if (isKind(Kind.ASSIGN)) {
+                advance();
+                e = expression();
+                a = new AssignmentStatement(firstToken,l,e);
+            }
+        } else if(isKind(Kind.RES_write)){
              advance();
              e = expression();
-             AssignmentStatement a = new AssignmentStatement(firstToken,l,e);
-             return a;
-         }else if(isKind(Kind.RES_write)){
-             advance();
-             e = expression();
-             WriteStatement w =  new WriteStatement(firstToken,e);
-             return w;
+             a =  new WriteStatement(firstToken,e);
+
          }else if(isKind(Kind.RES_while)){
             advance();
             e = expression();
             Block r = block();
-            return new WhileStatement(firstToken, e, r);
+            a = new WhileStatement(firstToken, e, r);
         } else { throw new SyntaxException("Error");}
+        return a;
     }
 }
