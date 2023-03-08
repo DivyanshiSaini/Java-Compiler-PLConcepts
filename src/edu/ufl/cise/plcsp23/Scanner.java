@@ -364,6 +364,9 @@ public class Scanner implements IScanner {
                             case "atan" -> kind = Kind.RES_atan;
                             case "if" -> kind = Kind.RES_if;
                             case "while" -> kind = Kind.RES_while;
+                            case "red" -> kind = Kind.RES_red;
+                            case "grn" -> kind = Kind.RES_grn;
+                            case "blu" -> kind = Kind.RES_blu;
                             default -> kind = Kind.IDENT;
                         }
                         return new Token(kind, tokenStart, length, col, line, inputChars);

@@ -1,6 +1,8 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.*;
 
+import javax.xml.crypto.dsig.spec.DigestMethodParameterSpec;
+
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ import java.util.List;
 public class Parser implements IParser {
     @Override
     public AST parse() throws PLCException {
-        return expression();
+        return program();
     }
 
     IToken t;
@@ -56,6 +58,90 @@ public class Parser implements IParser {
         }
     }
 
+    //Program::=  Type IDENT ( ParamList ) Block
+    public Program program() throws PLCException{
+        return null;
+    }
+    //Block ::= { DecList  StatementList }
+    public Block block() throws PLCException{
+        IToken firstToken = t;
+        Block b = null;
+        if (isKind(Kind.LCURLY)) { // isKind
+            advance();
+            List<Declaration> decList = decList();
+            //could be here
+            List<Statement> statList = statementList();
+            if(isKind(Kind.RCURLY)){
+                //might need advance();
+                b = new Block(firstToken,decList,statList);
+            } else{throw new PLCException("Error");}
+        } else{throw new PLCException("Error");}//else error
+        return b;
+    }
+    //DecList ::= ( Declaration . )*
+    public List<Declaration> decList() throws PLCException{
+        return null;
+    }
+    //StatementList ::= ( Statement . ) *
+    public List<Statement> statementList() throws PLCException{
+        return null;
+    }
+    //ParamList ::= ε |  NameDef  ( , NameDef ) *
+    public List<NameDef> paramList() throws PLCException{
+        return null;
+    }
+    //NameDef ::= Type IDENT | Type Dimension IDENT
+    public NameDef nameDef() throws PLCException{
+        IToken firstToken = t;
+        Type type = type();
+        Expr e = null;
+        Ident id = null;
+        NameDef ndef = null;
+
+        if (isKind(Kind.IDENT)) {
+            id = new Ident(firstToken);
+            advance();
+            ndef = new NameDef(t, type, d, id);
+        }
+        else{
+            Dimension d = dimension();
+            advance();
+            if (isKind(Kind.IDENT)) {
+                id = new Ident(firstToken);
+                advance();
+                ndef = new NameDef(t, type, d, id);
+            }
+        }
+        return ndef;
+    }
+    //Type ::= image | pixel | int | string | void
+    public Type type() throws PLCException{
+        IToken firstToken = t;
+        Type type = null;
+        try{
+            type = Type.getType(t);
+        }
+        catch(RuntimeException e){
+            throw new SyntaxException("Error");
+        }
+        return type;
+    }
+    //Declaration::= NameDef |  NameDef = Expr
+    public NameDef declaration() throws PLCException{
+        IToken firstToken = t;
+        Expr e = null;
+        NameDef ndef = nameDef();
+        if (isKind(Kind.ASSIGN)) {
+            advance();
+            e = expression();
+            NameDef d = new Declaration(firstToken,ndef,e).getNameDef();
+            return d;
+        }
+        else{
+            return ndef;
+        }
+
+    }
 
     //<expr> ::=   <conditional_expr> | <or_expr>
     public Expr expression() throws PLCException {
@@ -431,5 +517,9 @@ public class Parser implements IParser {
 
 
     }
+
+
+
+
 
 }
