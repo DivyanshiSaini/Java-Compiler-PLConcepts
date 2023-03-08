@@ -63,11 +63,12 @@ public class Parser implements IParser {
         Ident id = null;
         Program p = null;
         //added this advance for testing, could be wrong
-        advance();
+        //advance();
         if (isKind(Kind.IDENT)) {
-            id = new Ident(firstToken);
+            id = new Ident(t);
             advance();
             if(isKind(Kind.LPAREN)){
+                advance();
                 List<NameDef> pList = paramList();
                 if(isKind(Kind.RPAREN)){
                     advance();
@@ -75,7 +76,7 @@ public class Parser implements IParser {
                     p = new Program(firstToken, type, id, pList, b);
                 }else{throw new SyntaxException("Error");}
             }else{throw new SyntaxException("Error");}
-        }//else{throw new SyntaxException("Error");}
+        }else{throw new SyntaxException("Error");}
 
         return p;
     }
@@ -90,6 +91,7 @@ public class Parser implements IParser {
             List<Statement> statList = statementList();
             if(isKind(Kind.RCURLY)){
                 //might need advance();
+                advance();
                 b = new Block(firstToken,decList,statList);
             } else{throw new PLCException("Error");}
         } else{throw new PLCException("Error");}//else error
@@ -99,12 +101,12 @@ public class Parser implements IParser {
     public List<Declaration> decList() throws PLCException{
         IToken firstToken = t;
         List<Declaration> list = new ArrayList<Declaration>();
-        Declaration d = declaration();
-        while (isKind(Kind.RES_pixel) || isKind(Kind.RES_pixel) || isKind(Kind.RES_int) || isKind(Kind.RES_string) || isKind(Kind.RES_void)) {
-            d = declaration();
+        Declaration de = null;
+        while (isKind(Kind.RES_pixel) || isKind(Kind.RES_image) || isKind(Kind.RES_int) || isKind(Kind.RES_string) || isKind(Kind.RES_void)) {
+            de = declaration();
             if(isKind(Kind.DOT)){
                 advance();
-                list.add(new Declaration(firstToken, d.getNameDef(), d.getInitializer()));
+                list.add(de);
             }
         }
         return list;
@@ -126,14 +128,18 @@ public class Parser implements IParser {
     //ParamList ::= ε |  NameDef  ( , NameDef ) *
     public List<NameDef> paramList() throws PLCException{
         IToken firstToken = t;
-        NameDef ndef = nameDef();
         List<NameDef> list = new ArrayList<NameDef>();
 
-        while (isKind(Kind.COMMA)) {
-            advance();
-            NameDef tempDef = nameDef();
-            list.add(new NameDef(firstToken, tempDef.getType(), tempDef.getDimension(), tempDef.getIdent()));
+        if(isKind(Kind.RES_pixel) || isKind(Kind.RES_image) || isKind(Kind.RES_int) || isKind(Kind.RES_string) || isKind(Kind.RES_void)){
+            NameDef ndef = nameDef();
+            list.add(ndef);
+            while (isKind(Kind.COMMA)) {
+                advance();
+                NameDef tempDef = nameDef();
+                list.add(tempDef);
+            }
         }
+
         return list;
     }
     //NameDef ::= Type IDENT | Type Dimension IDENT
@@ -148,7 +154,7 @@ public class Parser implements IParser {
         if (isKind(Kind.LSQUARE)) {
             d = dimension();
         }
-        id = new Ident(firstToken);
+        id = new Ident(t);
         advance();
         ndef = new NameDef(t, type, d, id);
 
@@ -160,10 +166,12 @@ public class Parser implements IParser {
         Type type = null;
         try{
             type = Type.getType(t);
+
         }
         catch(RuntimeException e){
             throw new SyntaxException("Error");
         }
+        advance();
         return type;
     }
     //Declaration::= NameDef |  NameDef = Expr
@@ -406,7 +414,7 @@ public class Parser implements IParser {
         ColorChannel e = null;
         if (isKind(Kind.COLON)) { // isKind
             advance();
-            if(isKind(Kind.RES_red)){
+            if(isKind(Kind.RES_red)){ //you can check in same branch
                 advance();
                 e = ColorChannel.getColor(firstToken);
             }
