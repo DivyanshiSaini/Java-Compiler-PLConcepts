@@ -416,15 +416,15 @@ public class Parser implements IParser {
             advance();
             if(isKind(Kind.RES_red)){ //you can check in same branch
                 advance();
-                e = ColorChannel.getColor(firstToken);
+                e = ColorChannel.getColor(t);
             }
             else if(isKind(Kind.RES_blu)){
                 advance();
-                e = ColorChannel.getColor(firstToken);
+                e = ColorChannel.getColor(t);
             }
             else if(isKind(Kind.RES_grn)){
                 advance();
-                e = ColorChannel.getColor(firstToken);
+                e = ColorChannel.getColor(t);
             } else{
                 throw new PLCException("Error");
             }
