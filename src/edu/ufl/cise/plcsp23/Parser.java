@@ -452,13 +452,14 @@ public class Parser implements IParser {
     public Expr expandedPixel() throws PLCException{
         IToken firstToken = t;
         Expr e = null;
-        if (isKind(Kind.RES_if)) { // isKind
+
+        if (isKind(Kind.LSQUARE)) { // isKind
             advance();
             Expr r = expression();
             if(isKind(Kind.COMMA)){
                 advance();
                 Expr g = expression();
-                if (isKind(Kind.RES_if)) { // isKind
+                if (isKind(Kind.COMMA)) { // isKind
                     advance();
                     Expr b = expression();
                     if(isKind(Kind.RSQUARE)){
