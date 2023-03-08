@@ -98,22 +98,28 @@ public class Parser implements IParser {
     //DecList ::= ( Declaration . )*
     public List<Declaration> decList() throws PLCException{
         IToken firstToken = t;
-        List<Declaration> list = null;
-        while (isKind(Kind.DOT)) {
-            advance();
-            Declaration d = declaration();
-            list.add(new Declaration(firstToken, d.getNameDef(), d.getInitializer()));
+        List<Declaration> list = new ArrayList<Declaration>();
+        Declaration d = declaration();
+        while (isKind(Kind.RES_pixel) || isKind(Kind.RES_pixel) || isKind(Kind.RES_int) || isKind(Kind.RES_string) || isKind(Kind.RES_void)) {
+            d = declaration();
+            if(isKind(Kind.DOT)){
+                advance();
+                list.add(new Declaration(firstToken, d.getNameDef(), d.getInitializer()));
+            }
         }
         return list;
     }
     //StatementList ::= ( Statement . ) *
     public List<Statement> statementList() throws PLCException{
         IToken firstToken = t;
-        List<Statement> list = null;
-        while (isKind(Kind.DOT)) {
-            advance();
-            Statement s = statement();
-            list.add(s);
+        Statement s = null;
+        List<Statement> list = new ArrayList<Statement>();
+        while (isKind(Kind.IDENT)|| isKind(Kind.RES_while) || isKind(Kind.RES_write)) {
+            s = statement();
+            if(isKind(Kind.DOT)){
+                advance();
+                list.add(s);
+            }
         }
         return list;
     }
