@@ -93,8 +93,8 @@ public class Parser implements IParser {
                 //might need advance();
                 advance();
                 b = new Block(firstToken,decList,statList);
-            } else{throw new PLCException("Error");}
-        } else{throw new PLCException("Error");}//else error
+            } else{throw new SyntaxException("Error");}
+        } else{throw new SyntaxException("Error");}//else error
         return b;
     }
     //DecList ::= ( Declaration . )*
@@ -425,7 +425,7 @@ public class Parser implements IParser {
                 e = ColorChannel.getColor(t);
                 advance();
             } else{
-                throw new PLCException("Error");
+                throw new SyntaxException("Error");
             }
         }
         return e;
@@ -502,9 +502,9 @@ public class Parser implements IParser {
                 if(isKind(Kind.RSQUARE)){
                     advance();
                     e = new Dimension(firstToken,w,h);
-                } else{throw new PLCException("Error");}
-            } else{throw new PLCException("Error");}//else error
-        } else{throw new PLCException("Error");}//else error
+                } else{throw new SyntaxException("Error");}
+            } else{throw new SyntaxException("Error");}//else error
+        } else{throw new SyntaxException("Error");}//else error
         return e;
     }
 
