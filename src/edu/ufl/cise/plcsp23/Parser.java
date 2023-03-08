@@ -333,7 +333,7 @@ public class Parser implements IParser {
 
 
     //UnaryExprPostfix::= PrimaryExpr (PixelSelector | ε ) (ChannelSelector | ε )
-    public UnaryExprPostfix unaryExprPostFix() throws PLCException{
+    public Expr unaryExprPostFix() throws PLCException{
         IToken firstToken = t;
         Expr id = primary();
         UnaryExprPostfix e = null;
@@ -346,6 +346,9 @@ public class Parser implements IParser {
         if(isKind(Kind.COLON)){
             ch = channelSelector();
 
+        }
+        if (ch == null && pi == null) {
+            return id;
         }
         e = new UnaryExprPostfix(firstToken,id,pi,ch);
 
@@ -374,32 +377,32 @@ public class Parser implements IParser {
             } else {
                 advance();
             }
-        } else if (isKind(Kind.RES_Z)) {
+        }else if (isKind(Kind.RES_Z)) {
             advance();
             e = new ZExpr(firstToken);
-        } else if (isKind(Kind.RES_rand)) {
+        }else if (isKind(Kind.RES_rand)) {
             advance();
             e = new RandomExpr(firstToken);
-        } else if (isKind(Kind.RES_rand)) {
+        }else if (isKind(Kind.RES_rand)) {
             advance();
             e = new RandomExpr(firstToken);
         }else if (isKind(Kind.RES_x)) {
             advance();
-            e = new RandomExpr(firstToken);
+            e = new PredeclaredVarExpr(firstToken);
         }else if (isKind(Kind.RES_y)) {
             advance();
-            e = new RandomExpr(firstToken);
+            e = new PredeclaredVarExpr(firstToken);
         }else if (isKind(Kind.RES_a)) {
             advance();
-            e = new RandomExpr(firstToken);
+            e = new PredeclaredVarExpr(firstToken);
         } else if (isKind(Kind.RES_r)) {
             advance();
-            e = new RandomExpr(firstToken);
+            e = new PredeclaredVarExpr(firstToken);
         }else if (isKind(Kind.LSQUARE)) {
             e = expandedPixel();
-        } else if (isKind(Kind.RES_x_cart) || isKind(Kind.RES_y_cart) || isKind(Kind.RES_a_polar) || isKind(Kind.RES_r_polar)) {
+        }else if (isKind(Kind.RES_x_cart) || isKind(Kind.RES_y_cart) || isKind(Kind.RES_a_polar) || isKind(Kind.RES_r_polar)) {
             e = pixelFunctionExpr();
-        } else { throw new SyntaxException("Error");}
+        }else { throw new SyntaxException("Error");}
         return e;
     }
 
@@ -411,16 +414,19 @@ public class Parser implements IParser {
         if (isKind(Kind.COLON)) { // isKind
             advance();
             if(isKind(Kind.RES_red)){ //you can check in same branch
-                advance();
                 e = ColorChannel.getColor(t);
+                advance();
+
             }
             else if(isKind(Kind.RES_blu)){
-                advance();
                 e = ColorChannel.getColor(t);
+                advance();
+
             }
             else if(isKind(Kind.RES_grn)){
-                advance();
                 e = ColorChannel.getColor(t);
+                advance();
+
             } else{
                 throw new PLCException("Error");
             }
