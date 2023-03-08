@@ -342,10 +342,11 @@ public class Parser implements IParser {
 
         if(isKind(Kind.LSQUARE)){
             pi = pixelSelector();
+            //advance();
         }
         if(isKind(Kind.COLON)){
             ch = channelSelector();
-
+           // advance();
         }
         e = new UnaryExprPostfix(firstToken,id,pi,ch);
 
@@ -410,17 +411,9 @@ public class Parser implements IParser {
         ColorChannel e = null;
         if (isKind(Kind.COLON)) { // isKind
             advance();
-            if(isKind(Kind.RES_red)){ //you can check in same branch
-                advance();
+            if(isKind(Kind.RES_red) || isKind(Kind.RES_blu) ||isKind(Kind.RES_grn)){ //you can check in same branch
                 e = ColorChannel.getColor(t);
-            }
-            else if(isKind(Kind.RES_blu)){
                 advance();
-                e = ColorChannel.getColor(t);
-            }
-            else if(isKind(Kind.RES_grn)){
-                advance();
-                e = ColorChannel.getColor(t);
             } else{
                 throw new PLCException("Error");
             }
@@ -518,6 +511,7 @@ public class Parser implements IParser {
             advance();
             if(isKind(Kind.LSQUARE)){
                 pi = pixelSelector();
+                //advance();
             }
             if(isKind(Kind.COLON)){
                 ch = channelSelector();
