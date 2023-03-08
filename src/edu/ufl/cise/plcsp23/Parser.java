@@ -136,21 +136,15 @@ public class Parser implements IParser {
         Expr e = null;
         Ident id = null;
         NameDef ndef = null;
+        Dimension d = null;
 
-        if (isKind(Kind.IDENT)) {
-            id = new Ident(firstToken);
-            advance();
-            ndef = new NameDef(t, type, null, id);
+        if (isKind(Kind.LSQUARE)) {
+            d = dimension();
         }
-        else{
-            Dimension d = dimension();
-            advance();
-            if (isKind(Kind.IDENT)) {
-                id = new Ident(firstToken);
-                advance();
-                ndef = new NameDef(t, type, d, id);
-            }
-        }
+        id = new Ident(firstToken);
+        advance();
+        ndef = new NameDef(t, type, d, id);
+
         return ndef;
     }
     //Type ::= image | pixel | int | string | void
