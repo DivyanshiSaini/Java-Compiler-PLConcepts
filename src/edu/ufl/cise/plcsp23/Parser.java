@@ -1,8 +1,6 @@
 package edu.ufl.cise.plcsp23;
 import edu.ufl.cise.plcsp23.ast.*;
 
-import javax.xml.crypto.dsig.spec.DigestMethodParameterSpec;
-
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 
 import java.util.ArrayList;
@@ -60,7 +58,26 @@ public class Parser implements IParser {
 
     //Program::=  Type IDENT ( ParamList ) Block
     public Program program() throws PLCException{
-        return null;
+        IToken firstToken = t;
+        Type type = type();
+        Ident id = null;
+        Program p = null;
+        //added this advance for testing, could be wrong
+        advance();
+        if (isKind(Kind.IDENT)) {
+            id = new Ident(firstToken);
+            advance();
+            if(isKind(Kind.LPAREN)){
+                List<NameDef> pList = paramList();
+                if(isKind(Kind.RPAREN)){
+                    advance();
+                    Block b = block();
+                    p = new Program(firstToken, type, id, pList, b);
+                }else{throw new SyntaxException("Error");}
+            }else{throw new SyntaxException("Error");}
+        }//else{throw new SyntaxException("Error");}
+
+        return p;
     }
     //Block ::= { DecList  StatementList }
     public Block block() throws PLCException{
@@ -80,15 +97,37 @@ public class Parser implements IParser {
     }
     //DecList ::= ( Declaration . )*
     public List<Declaration> decList() throws PLCException{
-        return null;
+        IToken firstToken = t;
+        List<Declaration> list = null;
+        while (isKind(Kind.DOT)) {
+            advance();
+            Declaration d = declaration();
+            list.add(new Declaration(firstToken, d.getNameDef(), d.getInitializer()));
+        }
+        return list;
     }
     //StatementList ::= ( Statement . ) *
     public List<Statement> statementList() throws PLCException{
-        return null;
+        IToken firstToken = t;
+        List<Statement> list = null;
+        while (isKind(Kind.DOT)) {
+            advance();
+            Statement s = statement();
+            list.add(s);
+        }
+        return list;
     }
     //ParamList ::= ε |  NameDef  ( , NameDef ) *
     public List<NameDef> paramList() throws PLCException{
-        return null;
+        IToken firstToken = t;
+        NameDef ndef = nameDef();
+        List<NameDef> list = null;
+        while (isKind(Kind.COMMA)) {
+            advance();
+            NameDef tempDef = nameDef();
+            list.add(new NameDef(firstToken, tempDef.getType(), tempDef.getDimension(), tempDef.getIdent()));
+        }
+        return list;
     }
     //NameDef ::= Type IDENT | Type Dimension IDENT
     public NameDef nameDef() throws PLCException{
@@ -101,7 +140,7 @@ public class Parser implements IParser {
         if (isKind(Kind.IDENT)) {
             id = new Ident(firstToken);
             advance();
-            ndef = new NameDef(t, type, d, id);
+            ndef = new NameDef(t, type, null, id);
         }
         else{
             Dimension d = dimension();
@@ -127,20 +166,19 @@ public class Parser implements IParser {
         return type;
     }
     //Declaration::= NameDef |  NameDef = Expr
-    public NameDef declaration() throws PLCException{
+    public Declaration declaration() throws PLCException{
         IToken firstToken = t;
         Expr e = null;
         NameDef ndef = nameDef();
         if (isKind(Kind.ASSIGN)) {
             advance();
             e = expression();
-            NameDef d = new Declaration(firstToken,ndef,e).getNameDef();
+            Declaration d = new Declaration(firstToken,ndef,e);
             return d;
         }
         else{
-            return ndef;
+            return new Declaration(firstToken,ndef,null);
         }
-
     }
 
     //<expr> ::=   <conditional_expr> | <or_expr>
@@ -160,14 +198,14 @@ public class Parser implements IParser {
         Expr e = null;
         if (isKind(Kind.RES_if)) { // isKind
             advance();
-            Expr gaurd = expression();
+            Expr guard = expression();
             if (isKind(Kind.QUESTION)) {
                 advance();
                 Expr trueC = expression();
                 if (isKind(Kind.QUESTION)) {
                     advance();
                     Expr falseC = expression();
-                    e = new ConditionalExpr(firstToken, gaurd, trueC, falseC);
+                    e = new ConditionalExpr(firstToken, guard, trueC, falseC);
                 } else {
                     throw new SyntaxException("Error");
                 }
@@ -462,8 +500,6 @@ public class Parser implements IParser {
     }
 
 
-
-
     //LValue ::= IDENT (PixelSelector | ε ) (ChannelSelector | ε )
     public LValue lValue() throws PLCException{
         IToken firstToken = t;
@@ -489,8 +525,6 @@ public class Parser implements IParser {
         return e;
     }
 
-
-
     // Statement::= LValue = Expr | write Expr | while Expr Block
     public Statement statement() throws PLCException {
         IToken firstToken = t;
@@ -514,12 +548,5 @@ public class Parser implements IParser {
             Block r = block();
             return new WhileStatement(firstToken, e, r);
         } else { throw new SyntaxException("Error");}
-
-
     }
-
-
-
-
-
 }
