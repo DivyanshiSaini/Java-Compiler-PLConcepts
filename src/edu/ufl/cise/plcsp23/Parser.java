@@ -127,7 +127,8 @@ public class Parser implements IParser {
     public List<NameDef> paramList() throws PLCException{
         IToken firstToken = t;
         NameDef ndef = nameDef();
-        List<NameDef> list = null;
+        List<NameDef> list = new ArrayList<NameDef>();
+
         while (isKind(Kind.COMMA)) {
             advance();
             NameDef tempDef = nameDef();
