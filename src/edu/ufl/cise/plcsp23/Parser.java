@@ -162,16 +162,13 @@ public class Parser implements IParser {
     }
     //Type ::= image | pixel | int | string | void
     public Type type() throws PLCException{
-        IToken firstToken = t;
         Type type = null;
-        try{
+        if(isKind(Kind.RES_pixel) || isKind(Kind.RES_image) || isKind(Kind.RES_int) || isKind(Kind.RES_string) || isKind(Kind.RES_void)){
             type = Type.getType(t);
-
-        }
-        catch(RuntimeException e){
+            advance();
+        } else{
             throw new SyntaxException("Error");
         }
-        advance();
         return type;
     }
     //Declaration::= NameDef |  NameDef = Expr
@@ -517,8 +514,9 @@ public class Parser implements IParser {
         PixelSelector pi = null;
         ColorChannel ch = null;
         if (isKind(Kind.IDENT)) {
+            //advance();
+            id = new Ident(t);
             advance();
-            id = new Ident(firstToken);
             if(isKind(Kind.LSQUARE)){
                 advance();
                 pi = pixelSelector();
