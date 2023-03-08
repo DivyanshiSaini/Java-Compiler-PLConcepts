@@ -3,6 +3,7 @@ import edu.ufl.cise.plcsp23.ast.*;
 
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 
+import java.io.EOFException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,9 +75,11 @@ public class Parser implements IParser {
                     advance();
                     Block b = block();
                     p = new Program(firstToken, type, id, pList, b);
+                    if(!isAtEnd()){throw new SyntaxException("Error");}
                 }else{throw new SyntaxException("Error");}
             }else{throw new SyntaxException("Error");}
         }else{throw new SyntaxException("Error");}
+
 
         return p;
     }
