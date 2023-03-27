@@ -1,16 +1,17 @@
 /*Copyright 2023 by Beverly A Sanders
- * 
- * This code is provided for solely for use of students in COP4020 Programming Language Concepts at the 
- * University of Florida during the spring semester 2023 as part of the course project.  
- * 
- * No other use is authorized. 
- * 
- * This code may not be posted on a public web site either during or after the course.  
+ *
+ * This code is provided for solely for use of students in COP4020 Programming Language Concepts at the
+ * University of Florida during the spring semester 2023 as part of the course project.
+ *
+ * No other use is authorized.
+ *
+ * This code may not be posted on a public web site either during or after the course.
  */
 
 package edu.ufl.cise.plcsp23.ast;
 
 import edu.ufl.cise.plcsp23.PLCException;
+import edu.ufl.cise.plcsp23.ast.*;
 
 public interface ASTVisitor {
 
@@ -38,15 +39,17 @@ public interface ASTVisitor {
 
 	Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException;
 
-	Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException;
-
 	Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException;
+
+	Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException;
 
 	Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException;
 
 	Object visitProgram(Program program, Object arg) throws PLCException;
 
 	Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException;
+
+	Object visitReturnStatement(ReturnStatement returnStatement, Object arg)throws PLCException;
 
 	Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException;
 
@@ -59,7 +62,5 @@ public interface ASTVisitor {
 	Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException;
 
 	Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException;
-
-
 
 }

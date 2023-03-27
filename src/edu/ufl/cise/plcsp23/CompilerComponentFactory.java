@@ -10,9 +10,7 @@
 
 package edu.ufl.cise.plcsp23;
 
-import edu.ufl.cise.plcsp23.ast.Expr;
-
-import java.util.List;
+import edu.ufl.cise.plcsp23.ast.ASTVisitor;
 
 public class CompilerComponentFactory {
 	public static IScanner makeScanner(String input) {
@@ -38,5 +36,11 @@ public class CompilerComponentFactory {
 
 		return parser; // constructor.
 
+	}
+
+	public static ASTVisitor makeTypeChecker() throws LexicalException, PLCException {
+		//code to instantiate a return an ASTVisitor for type checking
+
+		return null;
 	}
 }

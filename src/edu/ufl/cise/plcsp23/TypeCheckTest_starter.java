@@ -12,12 +12,12 @@ package edu.ufl.cise.plcsp23;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import edu.ufl.cise.plcsp23.ast.ASTVisitor;
 import org.junit.jupiter.api.Test;
 
 import edu.ufl.cise.plcsp23.ast.AST;
-import edu.ufl.cise.plcsp23.ast.ASTVisitor;
-import edu.ufl.cise.plcsp23.javaCompilerClassLoader.DynamicClassLoader;
-import edu.ufl.cise.plcsp23.javaCompilerClassLoader.DynamicCompiler;
+//import edu.ufl.cise.plcsp23.javaCompilerClassLoader.DynamicClassLoader;
+//import edu.ufl.cise.plcsp23.javaCompilerClassLoader.DynamicCompiler;
 
 class TypeCheckTest_starter {
 	

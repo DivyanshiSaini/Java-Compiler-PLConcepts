@@ -536,7 +536,7 @@ public class Parser implements IParser {
         return e;
     }
 
-    // Statement::= LValue = Expr | write Expr | while Expr Block
+    // Statement::= LValue = Expr | write Expr | while Expr Block | :Expr
     public Statement statement() throws PLCException {
         IToken firstToken = t;
         Expr e = null;
@@ -560,7 +560,15 @@ public class Parser implements IParser {
             e = expression();
             Block r = block();
             a = new WhileStatement(firstToken, e, r);
-        } else { throw new SyntaxException("Error");}
+        }
+        //added 3/27/2023 for P4
+        else if (isKind(Kind.COLON)) { // isKind
+            advance();
+            e = expression();
+            a = new ReturnStatement(firstToken,e);
+        }
+        else { throw new SyntaxException("Error");}
         return a;
     }
 }
+
