@@ -11,6 +11,8 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,34 +20,44 @@ public class TypeCheck implements ASTVisitor{
 
     public static class SymbolTable {
 
-        HashMap<String,Declaration> entries = new HashMap<>();
+        //store
+        // use record
+        record TableNode(NameDef n, Integer i){};
+        int current_num;
+        int next_num;
+        HashMap<String,List<TableNode>> entries = new HashMap<>();
         //lib long look stack with hasmap
         //returns true if name successfully inserted in symbol table, false if already present
-        public boolean insert(String name, Declaration declaration) {
-            return (entries.putIfAbsent(name,declaration) == null);
+        public boolean insert(String name, NameDef n) {
+            if(!entries.containsKey(name)){
+                entries.put(name, new ArrayList<TableNode>());
+            }
+            TableNode  tn = new TableNode(n,current_num);
+
+            return entries.get(name).add(tn);
         }
         //returns Declaration if present, or null if name not declared.
         public Declaration lookup(String name) {
             return entries.get(name);
         }
     }
-    int current_num;
-    int next_num;
+
     // somehow implement scope_stack ig
-    void enterScope()
+   /* void enterScope()
     {
         current_num = next_num++;
         scope_stack.push(current_num);
     }
     void closeScope(){
-        current_num = scope=stack.pop();
-    }
+        current_num = scope_stack.pop();
+    }*/
 
 
     SymbolTable symbolTable = new SymbolTable();
     private void check(boolean condition, AST node, String message)  throws TypeCheckException {
-       // if (! condition) { throw new TypeCheckException(message, node.getSourceLoc()); }
+        if (! condition) { throw new TypeCheckException(message, node.getSourceLoc()); }
     }
+
     //lib long symbol tabel
     //key -> string
     // unique scope id

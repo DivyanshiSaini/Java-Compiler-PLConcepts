@@ -40,7 +40,6 @@ public class CompilerComponentFactory {
 
 	public static ASTVisitor makeTypeChecker() throws LexicalException, PLCException {
 		//code to instantiate a return an ASTVisitor for type checking
-
-		return null;
+		return new TypeCheck();
 	}
 }
