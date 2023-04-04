@@ -12,9 +12,7 @@ package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class TypeCheck implements ASTVisitor {
 
@@ -25,13 +23,15 @@ public class TypeCheck implements ASTVisitor {
         record TableNode(NameDef n, Integer s) {
         }
 
-        ;
+        //stack
+        // tablenode scope != scope id => error
         int current_num;
-        int next_num;
+
+        Stack<Integer> scope_stack;
         HashMap<String, List<TableNode>> sTable = new HashMap<>();
 
         //returns true if name successfully inserted in symbol table, false if already present
-        public void insert(String name, NameDef n, int scope) throws TypeCheckException {
+        public void insert(String name, NameDef namDef, int scope) throws TypeCheckException {
             if (!sTable.containsKey(name)) {
                 sTable.put(name, new ArrayList<TableNode>());
             } else if (sTable.containsKey(name)) { //if the scope of this is the same as the scope that's being inserted?
@@ -41,33 +41,48 @@ public class TypeCheck implements ASTVisitor {
                     }
                 }
             }
-            TableNode tn = new TableNode(n, scope);
+            TableNode tn = new TableNode(namDef, scope);
             sTable.get(name).add(tn);
         }
 
         //returns Declaration if present, or null if name not declared.
         public NameDef lookup(String name) throws TypeCheckException {
             NameDef temp = null;
+            boolean c = false;
+            Iterator scopeCheck = scope_stack.iterator();
+
+            if(!sTable.containsKey(name)){
+                throw new TypeCheckException("Lookup key not found");
+            }
+
             for (int i = 0; i < sTable.get(name).size(); i++) {
-                if (sTable.containsValue(name)) {
-                    temp = sTable.get(name).get(i).n;
+                while (scopeCheck.hasNext()){
+                    if (sTable.get(name).get(i).s == scopeCheck.next()) {
+                        temp = sTable.get(name).get(i).n;
+                        c = true;
+                    }
                 }
             }
+            if(!c){
+                throw new TypeCheckException("Lookup failed");
+            }
+
             return temp;
         }
-    }
 
-    // somehow implement scope_stack ig
-  /*  void enterScope()
-    {
-        current_num = next_num++;
-        scope_stack.push(current_num);
-    }
-    void closeScope(){
-        current_num = scope_stack.pop();
-    }
-*/
+        // want to go from top of the stack and then down
 
+        // somehow implement scope_stack ig
+        void enterScope() {
+            current_num = current_num++;
+            scope_stack.push(current_num);
+        }
+
+        void closeScope() {
+            current_num = scope_stack.pop();
+        }
+
+    }
     SymbolTable symbolTable = new SymbolTable();
 
     private void check(boolean condition, AST node, String message) throws TypeCheckException {
@@ -150,17 +165,20 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
+        String name = nameDef.getType().name().toString();
         return null;
     }
 
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
-        return null;
+        numLitExpr.setType(Type.INT);
+        return Type.INT;
     }
 
     @Override
     public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
-        return null;
+        pixelFuncExpr.setType(Type.PIXEL);
+        return Type.PIXEL;
     }
 
     @Override
@@ -190,7 +208,8 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
-        return null;
+        stringLitExpr.setType(Type.STRING);
+        return Type.STRING;
     }
 
     @Override
@@ -222,7 +241,7 @@ public class TypeCheck implements ASTVisitor {
         }
         return zExpr;
     }*/
-        return zExpr;
-
+       // return zExpr;
+        return null;
     }
 }
