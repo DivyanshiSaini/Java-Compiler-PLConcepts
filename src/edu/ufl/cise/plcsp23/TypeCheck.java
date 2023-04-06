@@ -188,16 +188,22 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
-        return null;
+        predeclaredVarExpr.setType(Type.INT);
+        return Type.INT;
     }
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
+       //symbolTable.enterScope();
+
+
         return null;
     }
 
     @Override
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
+        randomExpr.setType(Type.INT);
+       // return Type.INT;
         return null;
     }
 
@@ -209,7 +215,8 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
         stringLitExpr.setType(Type.STRING);
-        return Type.STRING;
+        //return Type.STRING;
+        return null;
     }
 
     @Override
@@ -234,14 +241,8 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
-        // probably not a list
-      /*  List<AST> decsAndStatements = program.getDecsAndStatements();
-        for (AST node : decsAndStatements) {
-            node.visit(this, arg);
-        }
-        return zExpr;
-    }*/
-       // return zExpr;
+        zExpr.setType(Type.INT);
+        //return Type.INT;
         return null;
     }
 }
