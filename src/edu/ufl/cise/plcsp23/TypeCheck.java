@@ -31,7 +31,7 @@ public class TypeCheck implements ASTVisitor {
         HashMap<String, List<TableNode>> sTable = new HashMap<>();
 
         //returns true if name successfully inserted in symbol table, false if already present
-        public void insert(String name, NameDef namDef, int scope) throws TypeCheckException {
+        public boolean insert(String name, NameDef namDef, int scope) throws TypeCheckException {
             if (!sTable.containsKey(name)) {
                 sTable.put(name, new ArrayList<TableNode>());
             } else if (sTable.containsKey(name)) { //if the scope of this is the same as the scope that's being inserted?
@@ -43,6 +43,8 @@ public class TypeCheck implements ASTVisitor {
             }
             TableNode tn = new TableNode(namDef, scope);
             sTable.get(name).add(tn);
+
+            return true;
         }
 
         //returns Declaration if present, or null if name not declared.
@@ -117,12 +119,57 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
-        //similar to cond. expr.
-        return null;
+        Kind op = binaryExpr.getOp().getKind();
+        Type leftType = (Type) binaryExpr.getLeft().visit(this, arg);
+        Type rightType = (Type) binaryExpr.getRight().visit(this, arg);
+        Type resultType = null;
+        switch(op) {//AND, OR, PLUS, MINUS, TIMES, DIV, MOD, EQUALS, NOT_EQUALS, LT, LE, GT,GE
+            case EQUALS,NOT_EQUALS -> {
+                check(leftType == rightType, binaryExpr, "incompatible types for comparison");
+                resultType = Type.BOOLEAN;
+            }
+            case PLUS -> {
+                if (leftType == Type.INT && rightType == Type.INT) resultType = Type.INT;
+                else if (leftType == Type.STRING && rightType == Type.STRING) resultType = Type.STRING;
+                else if (leftType == Type.BOOLEAN && rightType == Type.BOOLEAN) resultType = Type.BOOLEAN;
+                else check(false, binaryExpr, "incompatible types for operator");
+            }
+            case MINUS -> {
+                if (leftType == Type.INT && rightType == Type.INT) resultType = Type.INT;
+                else if (leftType == Type.STRING && rightType == Type.STRING) resultType = Type.STRING;
+                else check(false, binaryExpr, "incompatible types for operator");
+            }
+            case TIMES -> {
+                if (leftType == Type.INT && rightType == Type.INT) resultType = Type.INT;
+                else if (leftType == Type.BOOLEAN && rightType == Type.BOOLEAN) resultType = Type.BOOLEAN;
+                else check(false, binaryExpr, "incompatible types for operator");
+            }
+            case DIV -> {
+                if (leftType == Type.INT && rightType == Type.INT) resultType = Type.INT;
+                else check(false, binaryExpr, "incompatible types for operator");
+            }
+            case LT, LE, GT, GE -> {
+                if (leftType == rightType) resultType = Type.BOOLEAN;
+                else check(false, binaryExpr, "incompatible types for operator");
+            }
+            default -> {
+                throw new Exception("compiler error");
+            }
+        }
+        binaryExpr.setType(resultType);
+        return resultType;
     }
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLCException {
+        List<Declaration> dList = block.getDecList();
+        for (Declaration node : dList) {
+            node.visit(this, arg);
+        }
+        List<Statement> sList = block.getStatementList();
+        for (Statement node : sList) {
+            node.visit(this, arg);
+        }
         return null;
     }
 
@@ -135,6 +182,20 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
+
+        NameDef ndef = declaration.getNameDef();
+        ndef.visit(this,arg);
+        //If present, Expr.type must be properly
+        //typed and assignment compatible with
+        //NameDef.type. It is not allowed to
+        //refer to the name being defined.
+
+        if(declaration != null){
+            declaration.visit(this, arg);
+            check
+        }
+
+
         return null;
     }
 
@@ -155,7 +216,14 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
-        return null;
+        String name = identExpr.getName();
+        Declaration dec = symbolTable.lookup(name);
+        check(dec != null, identExpr, "undefined identifier " + name);
+        check(dec.isAssigned(), identExpr, "using uninitialized variable");
+        identExpr.setDec(dec); //save declaration--will be useful later.
+        Type type = dec.getType();
+        identExpr.setType(type);
+        return type;
     }
 
     @Override
@@ -194,10 +262,16 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
-       //symbolTable.enterScope();
+        symbolTable.enterScope();
+        List<NameDef> pList = program.getParamList();
+        for (NameDef node : pList) {
+            node.visit(this, arg);
+        }
+        Block b = program.getBlock();
+        b.visit(this,arg);
 
-
-        return null;
+        symbolTable.closeScope();
+        return program;
     }
 
     @Override
