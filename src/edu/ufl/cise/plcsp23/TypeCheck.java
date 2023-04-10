@@ -111,19 +111,93 @@ public class TypeCheck implements ASTVisitor {
     // dec -> namdef
 
 
-    @Override
-    public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
-        return null;
 
+
+
+    @Override
+    public Object visitProgram(Program program, Object arg) throws PLCException {
+        symbolTable.enterScope();
+        List<NameDef> pList = program.getParamList();
+        for (NameDef node : pList) {
+            node.visit(this, arg);
+        }
+        Block b = program.getBlock();
+        b.visit(this,arg);
+
+        symbolTable.closeScope();
+        return program;
     }
 
     @Override
+    public Object visitBlock(Block block, Object arg) throws PLCException {
+        List<Declaration> dList = block.getDecList();
+        for (Declaration node : dList) {
+            node.visit(this, arg);
+        }
+        List<Statement> sList = block.getStatementList();
+        for (Statement node : sList) {
+            node.visit(this, arg);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
+
+        NameDef ndef = declaration.getNameDef();
+        ndef.visit(this,arg);
+        //If present, Expr.type must be properly
+        //typed and assignment compatible with
+        //NameDef.type. It is not allowed to
+        //refer to the name being defined.
+
+        if(declaration != null){
+            declaration.visit(this, arg);
+            // check
+        }
+
+
+        return null;
+    }
+
+    @Override
+    public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
+        String name = nameDef.getType().name().toString();
+        return null;
+    }
+
+    @Override
+    public Object visitUnaryExprPostFix(UnaryExprPostfix unaryExprPostfix, Object arg) throws PLCException {
+        return null;
+    }
+
+    @Override
+    public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
+        pixelFuncExpr.setType(Type.PIXEL);
+        return Type.PIXEL;
+    }
+
+    @Override
+    public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
+        predeclaredVarExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    @Override
+    public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException {
+        Type t = (Type) conditionalExpr.getGuard().visit(this, arg); //how to visit
+        //ch
+        return null;
+    }
+
+
+    @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
-        Kind op = binaryExpr.getOp().getKind();
+        // Kind op = binaryExpr.getOp().getKind();
         Type leftType = (Type) binaryExpr.getLeft().visit(this, arg);
         Type rightType = (Type) binaryExpr.getRight().visit(this, arg);
         Type resultType = null;
-        switch(op) {//AND, OR, PLUS, MINUS, TIMES, DIV, MOD, EQUALS, NOT_EQUALS, LT, LE, GT,GE
+        /*switch(op) {//AND, OR, PLUS, MINUS, TIMES, DIV, MOD, EQUALS, NOT_EQUALS, LT, LE, GT,GE
             case EQUALS,NOT_EQUALS -> {
                 check(leftType == rightType, binaryExpr, "incompatible types for comparison");
                 resultType = Type.BOOLEAN;
@@ -155,134 +229,14 @@ public class TypeCheck implements ASTVisitor {
             default -> {
                 throw new Exception("compiler error");
             }
-        }
+        }*/
         binaryExpr.setType(resultType);
         return resultType;
     }
 
-    @Override
-    public Object visitBlock(Block block, Object arg) throws PLCException {
-        List<Declaration> dList = block.getDecList();
-        for (Declaration node : dList) {
-            node.visit(this, arg);
-        }
-        List<Statement> sList = block.getStatementList();
-        for (Statement node : sList) {
-            node.visit(this, arg);
-        }
-        return null;
-    }
 
     @Override
-    public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException {
-        Type t = (Type) conditionalExpr.getGuard().visit(this, arg); //how to visit
-
-        return null;
-    }
-
-    @Override
-    public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
-
-        NameDef ndef = declaration.getNameDef();
-        ndef.visit(this,arg);
-        //If present, Expr.type must be properly
-        //typed and assignment compatible with
-        //NameDef.type. It is not allowed to
-        //refer to the name being defined.
-
-        if(declaration != null){
-            declaration.visit(this, arg);
-            check
-        }
-
-
-        return null;
-    }
-
-    @Override
-    public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
-        return null;
-    }
-
-    @Override
-    public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
-        return null;
-    }
-
-    @Override
-    public Object visitIdent(Ident ident, Object arg) throws PLCException {
-        return null;
-    }
-
-    @Override
-    public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
-        String name = identExpr.getName();
-        Declaration dec = symbolTable.lookup(name);
-        check(dec != null, identExpr, "undefined identifier " + name);
-        check(dec.isAssigned(), identExpr, "using uninitialized variable");
-        identExpr.setDec(dec); //save declaration--will be useful later.
-        Type type = dec.getType();
-        identExpr.setType(type);
-        return type;
-    }
-
-    @Override
-    public Object visitLValue(LValue lValue, Object arg) throws PLCException {
-        return null;
-    }
-
-    @Override
-    public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
-        String name = nameDef.getType().name().toString();
-        return null;
-    }
-
-    @Override
-    public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
-        numLitExpr.setType(Type.INT);
-        return Type.INT;
-    }
-
-    @Override
-    public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
-        pixelFuncExpr.setType(Type.PIXEL);
-        return Type.PIXEL;
-    }
-
-    @Override
-    public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
-        return null;
-    }
-
-    @Override
-    public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
-        predeclaredVarExpr.setType(Type.INT);
-        return Type.INT;
-    }
-
-    @Override
-    public Object visitProgram(Program program, Object arg) throws PLCException {
-        symbolTable.enterScope();
-        List<NameDef> pList = program.getParamList();
-        for (NameDef node : pList) {
-            node.visit(this, arg);
-        }
-        Block b = program.getBlock();
-        b.visit(this,arg);
-
-        symbolTable.closeScope();
-        return program;
-    }
-
-    @Override
-    public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
-        randomExpr.setType(Type.INT);
-       // return Type.INT;
-        return null;
-    }
-
-    @Override
-    public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
+    public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException {
         return null;
     }
 
@@ -294,14 +248,76 @@ public class TypeCheck implements ASTVisitor {
     }
 
     @Override
-    public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException {
+    public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
+        numLitExpr.setType(Type.INT);
+        return Type.INT;
+    }
+
+    @Override
+    public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
+        String name = identExpr.getName();
+       /* Declaration dec = symbolTable.lookup(name);
+        check(dec != null, identExpr, "undefined identifier " + name);
+        check(dec.isAssigned(), identExpr, "using uninitialized variable");
+        identExpr.setDec(dec); //save declaration--will be useful later.
+        Type type = dec.getType();
+        identExpr.setType(type);*/
+        //return type;
         return null;
     }
 
     @Override
-    public Object visitUnaryExprPostFix(UnaryExprPostfix unaryExprPostfix, Object arg) throws PLCException {
+    public Object visitIdent(Ident ident, Object arg) throws PLCException {
         return null;
     }
+
+    @Override
+    public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
+        zExpr.setType(Type.INT);
+        //return Type.INT;
+        return null;
+    }
+
+    @Override
+    public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
+        randomExpr.setType(Type.INT);
+        // return Type.INT;
+        return null;
+    }
+
+    @Override
+    public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
+        return null;
+    }
+
+    @Override
+    public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
+        return null;
+    }
+
+
+    @Override
+    public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
+        return null;
+    }
+
+    @Override
+    public Object visitLValue(LValue lValue, Object arg) throws PLCException {
+        return null;
+    }
+
+    @Override
+    public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
+        return null;
+
+    }
+
+
+    @Override
+    public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
+        return null;
+    }
+
 
     @Override
     public Object visitWhileStatement(WhileStatement whileStatement, Object arg) throws PLCException {
@@ -313,10 +329,5 @@ public class TypeCheck implements ASTVisitor {
         return null;
     }
 
-    @Override
-    public Object visitZExpr(ZExpr zExpr, Object arg) throws PLCException {
-        zExpr.setType(Type.INT);
-        //return Type.INT;
-        return null;
-    }
+
 }
