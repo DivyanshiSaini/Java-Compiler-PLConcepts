@@ -19,8 +19,8 @@ public class CodeGen implements ASTVisitor {
         program.getIdent().visit(this,arg); //gets the name
         sB.append(program.getIdent().getName());
 
-        sB.append(" { ");
-        sB.append("public static ");
+        sB.append(" { \n");
+        sB.append("\t public static ");
         program.getType();
         sB.append(program.getType().name().toLowerCase());
         sB.append(" apply(");
@@ -32,32 +32,24 @@ public class CodeGen implements ASTVisitor {
 
         }
 
-        sB.append(") {");
+        sB.append(") { \n");
         program.getBlock().visit(this,arg);
-        sB.append("} }");
+        sB.append(" \t } \n }");
 
         return sB.toString();
     }
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLCException {
-        StringBuilder sB =new StringBuilder();
+        //StringBuilder sB =new StringBuilder();
         List<Declaration> bL = block.getDecList();
         for(int i = 0; i < bL.size(); i++){
             bL.get(i).visit(this,arg);
-            //if(bL.get(i).toString() == ";"){break;}
-           //Help is needed? for both declist and statement list
-           /* if(bL.get(i) != null){
-                sB.append(";");
-            }*/
         }
 
         List<Statement> sL = block.getStatementList();
         for(int i = 0; i < sL.size(); i++){
             sL.get(i).visit(this,arg);
-            /*if(sL.get(i) != null){
-                sB.append(";");
-            }*/
         }
        // return sB.toString();
         return null;
@@ -79,6 +71,7 @@ public class CodeGen implements ASTVisitor {
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         nameDef.getType();
+        sB.append(nameDef.getType().name());
         nameDef.getIdent().visit(this,arg);
         sB.append(nameDef.getIdent().getName());
 
@@ -105,7 +98,7 @@ public class CodeGen implements ASTVisitor {
         //HELP IS THIS CORRECT?
         sB.append("(");
         conditionalExpr.getGuard().visit(this,arg);
-        sB.append("== 1 ?");
+        sB.append(" == 1 ? ");
         conditionalExpr.getTrueCase().visit(this,arg);
         sB.append(" : ");
         conditionalExpr.getFalseCase().visit(this,arg);
@@ -157,6 +150,7 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         //sB.append(randomExpr.visit(this,arg));
         sB.append(Math.floor(Math.random() *256));
+        //HELP  what does it mean when it says will require import
         return sB.toString();
     }
 
@@ -178,7 +172,7 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        if(lValue.getPixelSelector().getX() == null && lValue.getPixelSelector().getY() == null) {
+        if(lValue.getPixelSelector() == null && lValue.getColor() == null) {
             sB.append(lValue.getIdent());
         }
         return sB.toString();
