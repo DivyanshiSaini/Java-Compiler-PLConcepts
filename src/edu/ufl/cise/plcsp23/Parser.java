@@ -100,6 +100,8 @@ public class Parser implements IParser {
         } else{throw new SyntaxException("Error");}//else error
         return b;
     }
+
+
     //DecList ::= ( Declaration . )*
     public List<Declaration> decList() throws PLCException{
         IToken firstToken = t;

@@ -41,33 +41,48 @@ public class CodeGen implements ASTVisitor {
 
     @Override
     public Object visitBlock(Block block, Object arg) throws PLCException {
+        StringBuilder sB =new StringBuilder();
         List<Declaration> bL = block.getDecList();
         for(int i = 0; i < bL.size(); i++){
             bL.get(i).visit(this,arg);
+            //if(bL.get(i).toString() == ";"){break;}
+           //Help is needed? for both declist and statement list
+           /* if(bL.get(i) != null){
+                sB.append(";");
+            }*/
         }
+
         List<Statement> sL = block.getStatementList();
         for(int i = 0; i < sL.size(); i++){
             sL.get(i).visit(this,arg);
+            /*if(sL.get(i) != null){
+                sB.append(";");
+            }*/
         }
+       // return sB.toString();
         return null;
     }
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+
         declaration.getNameDef().visit(this,arg);
         if(declaration.getInitializer() != null){
-            sB.append("=");
+            sB.append(" = ");
             declaration.getInitializer().visit(this,arg);
         }
-        return sB;
+        return sB.toString();
     }
 
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
-        nameDef.getIdent().visit(this,arg);
+        StringBuilder sB = new StringBuilder();
         nameDef.getType();
-        return null;
+        nameDef.getIdent().visit(this,arg);
+        sB.append(nameDef.getIdent().getName());
+
+        return sB.toString();
     }
 
 
@@ -87,13 +102,15 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append("(");
+        //HELP IS THIS CORRECT?
+        sB.append("if (");
         conditionalExpr.getGuard().visit(this,arg);
         sB.append("== 1");
-        sB.append(" ? ");
+        sB.append(" { ");
         conditionalExpr.getTrueCase().visit(this,arg);
-        sB.append(" : ");
+        sB.append(" } else { ");
         conditionalExpr.getFalseCase().visit(this,arg);
+        sB.append(" } ");
 
         //question
         return sB.toString();
@@ -102,9 +119,9 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append("(");
+        sB.append("( ");
         binaryExpr.getLeft().visit(this,arg);
-        sB.append(binaryExpr.getOp());
+        sB.append(" " + binaryExpr.getOp() + " ");
         binaryExpr.getRight().visit(this,arg);
         sB.append(")");
         return sB.toString();
@@ -162,7 +179,9 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append(lValue.getIdent());
+        if(lValue.getPixelSelector().getX() == null && lValue.getPixelSelector().getY() == null) {
+            sB.append(lValue.getIdent());
+        }
         return sB.toString();
     }
 
@@ -170,14 +189,15 @@ public class CodeGen implements ASTVisitor {
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         statementAssign.getLv().visit(this,arg);
-        sB.append("=");
+        sB.append(" = ");
         statementAssign.getE().visit(this,arg);
         return sB.toString();
     }
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
+        // HELP what does it mean to import???
+        //sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
         sB.append("ConsolelO.(");
         statementWrite.getE().visit(this,arg);
         sB.append(")");
@@ -194,8 +214,7 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append("while(");
         whileStatement.getGuard().visit(this,arg);
-        sB.append("== 1");
-        sB.append("{");
+        sB.append(" == 1){");
         whileStatement.getBlock().visit(this,arg);
         sB.append("}");
         return sB.toString();
@@ -210,7 +229,7 @@ public class CodeGen implements ASTVisitor {
     //Expr ::= ConditionalExpr | BinaryExpr | UnaryExpr | StringLitExpr | IdentExpr | NumLitExpr | ZExpr | RandExpr | UnaryExprPostFix | PixelFuncExpr |PredeclaredVarExpr
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
-       return returnStatement.getE().visit(this,arg);
+        return returnStatement.getE().visit(this,arg);
     }
 
 

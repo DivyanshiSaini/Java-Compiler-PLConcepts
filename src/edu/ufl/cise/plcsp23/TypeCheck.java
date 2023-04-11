@@ -395,8 +395,8 @@ public class TypeCheck implements ASTVisitor {
         Type t0 = (Type) pixelSelector.getX().visit(this,arg);
         Type t1 = (Type) pixelSelector.getY().visit(this,arg);
 
-        check(t0 == Type.INT, pixelSelector, "Expr 0 not an int type");
-        check(t1 == Type.INT, pixelSelector, "Expr 1 not an int type");
+        check(t0 == Type.INT, pixelSelector, "Expr 0 not an int type PS");
+        check(t1 == Type.INT, pixelSelector, "Expr 1 not an int type PS");
 
         return null;
     }
@@ -407,9 +407,9 @@ public class TypeCheck implements ASTVisitor {
         Type g = (Type) expandedPixelExpr.getGrnExpr().visit(this,arg);
         Type b = (Type) expandedPixelExpr.getBluExpr().visit(this,arg);
 
-        check(r == Type.INT, expandedPixelExpr, "Expr 0 not an int type");
-        check(g == Type.INT, expandedPixelExpr, "Expr 1 not an int type");
-        check(b == Type.INT, expandedPixelExpr, "Expr 3 not an int type");
+        check(r == Type.INT, expandedPixelExpr, "Expr 0 not an int type EPE");
+        check(g == Type.INT, expandedPixelExpr, "Expr 1 not an int type EPE");
+        check(b == Type.INT, expandedPixelExpr, "Expr 3 not an int type EPE");
         expandedPixelExpr.setType(Type.PIXEL);
 
         return Type.PIXEL;
@@ -421,8 +421,8 @@ public class TypeCheck implements ASTVisitor {
         Type h = (Type) dimension.getHeight().visit(this,arg);
         Type w = (Type) dimension.getWidth().visit(this,arg);
 
-        check(h == Type.INT, dimension,"Expr 0 not an int type");
-        check(w == Type.INT, dimension,"Expr 1 not an int type");
+        check(h == Type.INT, dimension,"Expr 0 not an int type Di");
+        check(w == Type.INT, dimension,"Expr 1 not an int type Di");
         return null;
     }
 
@@ -434,17 +434,18 @@ public class TypeCheck implements ASTVisitor {
         boolean c = false;
         Type resultType = null;
 
+
         if(lValue.getIdent() != null){
             i = (Type) lValue.getIdent().visit(this,arg);
             NameDef nDef = symbolTable.lookup(lValue.getIdent().getName()); // HELP IS THIS NEEDED?
 
             //HELP HOW TO ACCESS CHANNEL SELECTOR
-            if(lValue.getPixelSelector().getX() != null){
-                 lValue.getPixelSelector().getX().visit(this,arg);
+            if(lValue.getPixelSelector() != null){
+                 lValue.getPixelSelector().visit(this,arg);
                  p = true;
             }
-            if(lValue.getPixelSelector().getY() != null){
-                 lValue.getPixelSelector().getX().visit(this,arg);
+            if(lValue.getColor() != null){
+                 lValue.getColor();
                  c = true;
             }
 
@@ -452,20 +453,20 @@ public class TypeCheck implements ASTVisitor {
                 if((!p && !c) || (!p && c)) resultType = Type.IMAGE;
                 else if ( p && !c) resultType = Type.PIXEL;
                 else if (p && c) resultType = Type.INT;
-                else check(false, lValue, "lvalue error");
+                else check(false, lValue, "lvalue error Im");
             }
             else if(i == Type.PIXEL){
                 if(!p && !c) resultType = Type.PIXEL;
                 else if (!p && c) resultType = Type.INT;
-                else check(false, lValue, "lvalue error");
+                else check(false, lValue, "lvalue error Pi");
             }
             else if(i == Type.STRING){
                 if(!p && !c) resultType = Type.STRING;
-                else check(false, lValue, "lvalue error");
+                else check(false, lValue, "lvalue error St");
             }
             else if(i == Type.INT){
                 if(!p && !c) resultType = Type.INT;
-                else check(false, lValue, "lvalue error");
+                else check(false, lValue, "lvalue error In");
             }
             else{check(false, lValue, "lvalue error");}
         }
