@@ -121,7 +121,7 @@ public class Parser implements IParser {
         IToken firstToken = t;
         Statement s = null;
         List<Statement> list = new ArrayList<Statement>();
-        while (isKind(Kind.IDENT)|| isKind(Kind.RES_while) || isKind(Kind.RES_write)) {
+        while (isKind(Kind.IDENT)|| isKind(Kind.RES_while) || isKind(Kind.RES_write) || isKind(Kind.COLON)) {
             s = statement();
             if(isKind(Kind.DOT)){
                 advance();

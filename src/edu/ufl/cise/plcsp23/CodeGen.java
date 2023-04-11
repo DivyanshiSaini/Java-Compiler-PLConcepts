@@ -103,14 +103,13 @@ public class CodeGen implements ASTVisitor {
     public Object visitConditionalExpr(ConditionalExpr conditionalExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         //HELP IS THIS CORRECT?
-        sB.append("if (");
+        sB.append("(");
         conditionalExpr.getGuard().visit(this,arg);
-        sB.append("== 1");
-        sB.append(" { ");
+        sB.append("== 1 ?");
         conditionalExpr.getTrueCase().visit(this,arg);
-        sB.append(" } else { ");
+        sB.append(" : ");
         conditionalExpr.getFalseCase().visit(this,arg);
-        sB.append(" } ");
+        sB.append(" ) ");
 
         //question
         return sB.toString();
@@ -214,7 +213,7 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append("while(");
         whileStatement.getGuard().visit(this,arg);
-        sB.append(" == 1){");
+        sB.append(" == 1) {");
         whileStatement.getBlock().visit(this,arg);
         sB.append("}");
         return sB.toString();

@@ -36,7 +36,10 @@ public class TypeCheck implements ASTVisitor {
         public boolean insert(String name, NameDef namDef,int scope) throws TypeCheckException {
             if (!sTable.containsKey(name)) {
                 sTable.put(name, new ArrayList<TableNode>());
-            } else if (sTable.containsKey(name)) { //if the scope of this is the same as the scope that's being inserted?
+            }
+
+            else if (sTable.containsKey(name)) { //if the scope of this is the same as the scope that's being inserted?
+                //System.out.println(sTable.get(name).size());
                 for (int i = 0; i < sTable.get(name).size(); i++) {
                     if (sTable.get(name).get(i).s == scope) {
                         throw new TypeCheckException("Error Scope Exist");
@@ -53,19 +56,22 @@ public class TypeCheck implements ASTVisitor {
         public NameDef lookup(String name) throws TypeCheckException {
             NameDef temp = null;
             boolean c = false;
-            Iterator scopeCheck = scope_stack.iterator();
+            Stack<Integer> tempStack = (Stack<Integer>) scope_stack.clone();
+           // Iterator scopeCheck = scope_stack.iterator();
 
             if(!sTable.containsKey(name)){
                 throw new TypeCheckException("Lookup key not found");
             }
+            while (!tempStack.empty()){
+                for (int i = 0; i < sTable.get(name).size(); i++) {
 
-            for (int i = 0; i < sTable.get(name).size(); i++) {
-                while (scopeCheck.hasNext()){
-                    if (sTable.get(name).get(i).s == scopeCheck.next()) {
+                    if (sTable.get(name).get(i).s == tempStack.peek()) {
                         temp = sTable.get(name).get(i).n;
                         c = true;
+                        return temp;
                     }
                 }
+                tempStack.pop();
             }
             if(!c){
                 throw new TypeCheckException("Lookup failed");
@@ -80,7 +86,7 @@ public class TypeCheck implements ASTVisitor {
             scope_stack.push(current_num);
         }
         void closeScope() {
-            current_num = scope_stack.pop();
+            scope_stack.pop();
         }
 
     }
@@ -126,39 +132,47 @@ public class TypeCheck implements ASTVisitor {
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
-        Type n = (Type) declaration.getNameDef().visit(this,arg);
 
+        if(declaration.getInitializer() != null) {
+            Type e = (Type) declaration.getInitializer().visit(this, arg);
+            Type n = (Type) declaration.getNameDef().visit(this,arg);
+            //System.out.println(e + "\n" + n);
 
-        if(declaration.getInitializer() != null){
-           Type e = (Type) declaration.getInitializer().visit(this,arg);
+            if (n == Type.IMAGE) {
+                if (e == Type.IMAGE || e == Type.PIXEL || e == Type.STRING) {
+                    check(true, declaration, "declaration compatible");
+                } else {
+                    check(false, declaration, "declaration not compatible");
+                }
+            }
+            else if (n == Type.PIXEL) {
+                if (e == Type.PIXEL || e == Type.INT) {
+                    check(true, declaration, "declaration compatible");
+                } else {
+                    check(false, declaration, "declaration not compatible");
+                }
+            }
+            else if (n == Type.INT) {
+                if (e == Type.PIXEL || e == Type.INT) {
+                    check(true, declaration, "declaration compatible");
+                } else {
+                    check(false, declaration, "declaration not compatible");
+                }
+            }
+            else if (n == Type.STRING) {
+                if (e == Type.IMAGE || e == Type.PIXEL || e == Type.INT || e == Type.STRING) {
+                    check(true, declaration, "declaration compatible");
+                } else {
+                    check(false, declaration, "declaration not compatible");
+                }
+            }
 
-            if(n == Type.IMAGE){
-                if(e == Type.IMAGE){ check(true, declaration, "declaration compatible"); }
-                else if (e == Type.PIXEL){ check(true, declaration, "declaration compatible");}
-                else if (e == Type.STRING){check(true, declaration, "declaration compatible");
-                } else {check(false, declaration, "declaration not compatible");}
-            }
-            else if(n == Type.PIXEL){
-                if(e == Type.PIXEL){check(true, declaration, "declaration compatible");}
-                else if (e == Type.INT){check(true, declaration, "declaration compatible");}
-                else {check(false, declaration, "declaration not compatible");}
-            }
-            else if(n == Type.INT){
-                if(e == Type.PIXEL){ check(true, declaration, "declaration compatible");}
-                else if (e == Type.INT){check(true, declaration, "declaration compatible");}
-                else {check(false, declaration, "declaration not compatible");}
-            }
-            else if(n == Type.STRING){
-                if(e == Type.IMAGE){check(true, declaration, "declaration compatible");}
-                else if (e == Type.PIXEL){check(true, declaration, "declaration compatible");}
-                else if (e == Type.INT){check(true, declaration, "declaration compatible");}
-                else if (e == Type.STRING){check(true, declaration, "declaration compatible");}
-                else {check(false, declaration, "declaration not compatible");}
-            }
             //HELP do I need an else statement here
+        } else{
+            declaration.getNameDef().visit(this,arg);
         }
 
-        if (n == Type.IMAGE){
+        if (declaration.getNameDef().getType() == Type.IMAGE){
             if(declaration.getInitializer() != null){
                 declaration.getInitializer().visit(this,arg);
             }
@@ -167,12 +181,14 @@ public class TypeCheck implements ASTVisitor {
             }
         }
 
+
         return null;
     }
 
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
-       if(nameDef.getDimension() != null) {
+
+        if(nameDef.getDimension() != null) {
            //HELP is the bottom line correct to check TYPE == IMAGE
            check(nameDef.getType() == Type.IMAGE, nameDef, "Type is Image");
            nameDef.getDimension().visit(this, arg);
@@ -182,7 +198,7 @@ public class TypeCheck implements ASTVisitor {
 
        //HELP IS SCOPE CURRENT_NUM CORRECT??
         symbolTable.insert(nameDef.getIdent().getName(), nameDef, symbolTable.current_num);
-       return null;
+       return nameDef.getType();
     }
 
     @Override
@@ -198,7 +214,10 @@ public class TypeCheck implements ASTVisitor {
         }
         if(unaryExprPostfix.getPixel().getY() != null){
             unaryExprPostfix.getPixel().getY().visit(this,arg);
-            c = true;
+            //c = true;
+        }
+        if(unaryExprPostfix.getColor() != null){
+             c = true;
         }
 
         Type t = (Type) unaryExprPostfix.getPrimary().visit(this,arg);
@@ -214,24 +233,25 @@ public class TypeCheck implements ASTVisitor {
             else if(p && c){result = Type.INT;}
             else {check(false,unaryExprPostfix, "unary expr fail");}
         }
-        //////////////////////question/////////////////////////  HELP
-        /*else{
+        else{
             check(false, unaryExprPostfix, "un fail");
-        }*/
+        }
 
         // EDITMADE
         unaryExprPostfix.setType(result);
 
         //HELP -> IS return type null?
-        return null;
+        return result;
     }
 
     @Override
     public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
         //EDITMADE made fixes
-        pixelFuncExpr.visit(this,arg);
+       // pixelFuncExpr.visit(this,arg);
         pixelFuncExpr.setType(Type.INT);
+        pixelFuncExpr.getSelector().visit(this,arg);
         return Type.INT;
+        //return Type.INT;
     }
 
     @Override
@@ -262,6 +282,7 @@ public class TypeCheck implements ASTVisitor {
         Kind op = binaryExpr.getOp();
         Type leftType = (Type) binaryExpr.getLeft().visit(this, arg);
         Type rightType = (Type) binaryExpr.getRight().visit(this, arg);
+        //System.out.println(leftType + "\n" + rightType);
         Type resultType = null;
 
         switch(op) {  // HELP '=' an operator?
@@ -357,7 +378,9 @@ public class TypeCheck implements ASTVisitor {
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
        //HELP there is no numlit what do I do?
-        return null;
+        numLitExpr.setType(Type.INT);
+        return Type.INT;
+       //return null;
     }
 
     @Override
@@ -368,6 +391,7 @@ public class TypeCheck implements ASTVisitor {
         NameDef nDef = symbolTable.lookup(name);
         check(nDef != null, identExpr, "undefined identifier " + name);
         identExpr.setType(nDef.getType()); //save declaration--will be useful later.
+
         return nDef.getType();
         //return null;
     }
@@ -438,15 +462,17 @@ public class TypeCheck implements ASTVisitor {
         if(lValue.getIdent() != null){
             i = (Type) lValue.getIdent().visit(this,arg);
             NameDef nDef = symbolTable.lookup(lValue.getIdent().getName()); // HELP IS THIS NEEDED?
-
+            i = nDef.getType();
+            resultType = i;
             //HELP HOW TO ACCESS CHANNEL SELECTOR
             if(lValue.getPixelSelector() != null){
-                 lValue.getPixelSelector().visit(this,arg);
-                 p = true;
+                lValue.getPixelSelector().visit(this,arg);
+                p = true;
             }
             if(lValue.getColor() != null){
-                 lValue.getColor();
-                 c = true;
+                lValue.getColor();
+                lValue.getColor();
+                c = true;
             }
 
             if(i == Type.IMAGE){
@@ -468,10 +494,12 @@ public class TypeCheck implements ASTVisitor {
                 if(!p && !c) resultType = Type.INT;
                 else check(false, lValue, "lvalue error In");
             }
-            else{check(false, lValue, "lvalue error");}
+            else {
+                check(false, lValue, "lvalue error");
+            }
         }
 
-        return null;
+        return resultType;
     }
 
     @Override
@@ -479,35 +507,41 @@ public class TypeCheck implements ASTVisitor {
        Type l = (Type) statementAssign.getLv().visit(this,arg);
        Type e = (Type) statementAssign.getE().visit(this,arg);
 
-        if(l == Type.IMAGE){
+       // System.out.println(l + "\n" + e);
+
+       if(l == Type.IMAGE){
             if(e == Type.IMAGE || e == Type.PIXEL || e == Type.STRING){
                 // HELP is it ok to just check true?
-                check(true, statementAssign, "declaration compatible");
+                check(true, statementAssign, "1 declaration compatible");
             }else {
-                check(false, statementAssign, "declaration not compatible");
+                check(false, statementAssign, " 2 declaration not compatible");
             }
         }
         else if(l == Type.PIXEL){
+           // System.out.println(e);
             if(e == Type.PIXEL || e == Type.INT){
-                check(true, statementAssign, "declaration compatible");
-            }else {
-                check(false, statementAssign, "declaration not compatible");
-            }
-        }else if(l == Type.INT){
-            if(e == Type.PIXEL || e == Type.INT){
-                check(true, statementAssign, "declaration compatible");
+                check(true, statementAssign, "3 declaration compatible");
             }
             else {
-                check(false, statementAssign, "declaration not compatible");
+                check(false, statementAssign, "4 declaration not compatible");
+
+            }
+
+        }else if(l == Type.INT){
+            if(e == Type.PIXEL || e == Type.INT){
+                check(true, statementAssign, "5 declaration compatible");
+            }
+            else {
+                check(false, statementAssign, "6 declaration not compatible");
             }
         } else if(l == Type.STRING){
             if(e == Type.IMAGE || e == Type.PIXEL || e == Type.INT || e== Type.STRING){
-                check(true, statementAssign, "declaration compatible");
+                check(true, statementAssign, "7 declaration compatible");
             }else {
-                check(false, statementAssign, "declaration not compatible");
+                check(false, statementAssign, "8 declaration not compatible");
             }
         } else{
-            check(false, statementAssign, "declaration not compatible");
+            check(false, statementAssign, "9 declaration not compatible");
         }
 
         return null;
