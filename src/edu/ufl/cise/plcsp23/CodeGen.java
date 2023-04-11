@@ -14,24 +14,28 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append("public class ");
 
+        sB.append("public class ");
         program.getIdent().visit(this,arg); //gets the name
         sB.append(program.getIdent().getName());
-        sB.append("{ \n");
+
+        sB.append(" { ");
         sB.append("public static ");
         program.getType();
         sB.append(program.getType().name().toLowerCase());
         sB.append(" apply(");
+
         List<NameDef> pL = program.getParamList();
         for(int i = 0; i < pL.size(); i++){
             pL.get(i).visit(this,arg);
             sB.append(pL.get(i).getType().toString().toLowerCase() + " " +pL.get(i).getIdent().getName().toLowerCase());
 
         }
+
         sB.append(") {");
         program.getBlock().visit(this,arg);
-        sB.append("}");
+        sB.append("} }");
+
         return sB.toString();
     }
 
