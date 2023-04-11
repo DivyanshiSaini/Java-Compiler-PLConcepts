@@ -11,13 +11,14 @@
 package edu.ufl.cise.plcsp23.ast;
 
 import edu.ufl.cise.plcsp23.PLCException;
+import edu.ufl.cise.plcsp23.TypeCheckException;
 import edu.ufl.cise.plcsp23.ast.*;
 
 public interface ASTVisitor {
 
 	Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException;
 
-	Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException;
+	Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException, TypeCheckException;
 
 	Object visitBlock(Block block, Object arg) throws PLCException;
 
@@ -31,7 +32,7 @@ public interface ASTVisitor {
 
 	Object visitIdent(Ident ident, Object arg) throws PLCException;
 
-	Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException;
+	Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException, TypeCheckException;
 
 	Object visitLValue(LValue lValue, Object arg) throws PLCException;
 
