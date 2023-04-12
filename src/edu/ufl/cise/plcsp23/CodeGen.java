@@ -11,6 +11,8 @@ public class CodeGen implements ASTVisitor {
         packageName = pName;
     }
 
+
+
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
@@ -28,13 +30,15 @@ public class CodeGen implements ASTVisitor {
         List<NameDef> pL = program.getParamList();
         for(int i = 0; i < pL.size(); i++){
             pL.get(i).visit(this,arg);
-            sB.append(pL.get(i).getType().toString().toLowerCase() + " " +pL.get(i).getIdent().getName().toLowerCase());
-
+            sB.append(pL.get(i).getType().toString().toLowerCase());
+            sB.append(" ");
+            sB.append(pL.get(i).getIdent().getName().toLowerCase());
+            if(i != pL.size()-1)  sB.append(" , ");
         }
 
         sB.append(") { \n");
         program.getBlock().visit(this,arg);
-        sB.append(" \t } \n }");
+        sB.append(" \t } }");
 
         return sB.toString();
     }
@@ -191,7 +195,7 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         // HELP what does it mean to import???
         //sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
-        sB.append("ConsolelO.(");
+        sB.append("ConsoleIO.write(");
         statementWrite.getE().visit(this,arg);
         sB.append(")");
         return sB.toString();
@@ -222,7 +226,11 @@ public class CodeGen implements ASTVisitor {
     //Expr ::= ConditionalExpr | BinaryExpr | UnaryExpr | StringLitExpr | IdentExpr | NumLitExpr | ZExpr | RandExpr | UnaryExprPostFix | PixelFuncExpr |PredeclaredVarExpr
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
-        return returnStatement.getE().visit(this,arg);
+        StringBuilder sB = new StringBuilder();
+        sB.append(" return ");
+        returnStatement.getE().visit(this,arg);
+        sB.append(returnStatement.getE());
+        return sB.toString();
     }
 
 
