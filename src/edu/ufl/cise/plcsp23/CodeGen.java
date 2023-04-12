@@ -1,8 +1,9 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
-import edu.ufl.cise.plcsp23.runtime.ConsoleIO;
+
 import java.lang.reflect.Parameter;
+import static edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.List;
 
 public class CodeGen implements ASTVisitor {
@@ -16,27 +17,28 @@ public class CodeGen implements ASTVisitor {
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
 
-
+        sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
+        sB.append("import java.lang.Math; \n \n");
 
         sB.append("public class ");
-        sB.append(program.getIdent().visit(this, arg)); //gets the name
+        program.getIdent().visit(this, arg); //gets the name
         sB.append(program.getIdent().getName());
 
         sB.append(" { \n");
         sB.append("\t public static ");
+
         program.getType();
-
         String s = program.getType().name().toLowerCase().toString().replaceAll("string", "String");
-
         sB.append(s);
+
         sB.append(" apply(");
 
         List<NameDef> pL = program.getParamList();
         for (int i = 0; i < pL.size(); i++) {
             pL.get(i).visit(this, arg);
             String si = program.getType().name().toLowerCase().toString().replaceAll("string", "String");
-            sB.append(si);
-            sB.append(" ");
+            sB.append(si + " ");
+
             sB.append(pL.get(i).getIdent().getName().toLowerCase());
             if (i != pL.size() - 1) sB.append(" , ");
         }
@@ -127,9 +129,47 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append("( ");
         sB.append(binaryExpr.getLeft().visit(this,arg));
-        sB.append(" " + binaryExpr.getOp() + " "); //something that returns an string //switch statement
+        Kind op = binaryExpr.getOp();
+        String opStore = "";
+        switch(op) {
+            //|,&
+            case BITOR ->{opStore = "|"  ;}
+            case BITAND->{opStore = "&"  ;}
+            //||
+            case OR ->{opStore = "||";}
+            //&&
+            case AND ->{opStore = "&&";}
+            //<
+            case LT->{opStore = "<";}
+            //>
+            case GT ->{opStore = ">";}
+            //<=
+            case LE->{opStore = "<=";}
+            //>=
+            case GE ->{opStore = ">=";}
+            // ==
+            case EQ ->{opStore = "==";}
+            // =
+            case PLUS ->{opStore = "+";}
+            // =
+            case MINUS ->{opStore = "-";}
+            // =
+            case TIMES ->{opStore = "*";}
+            // =
+            case DIV ->{opStore = "/";}
+            // =
+            case MOD ->{opStore = "%";}
+            //**
+            case EXP -> { opStore = "Math.pow("; }
+            /*default -> {
+                throw new TypeCheckException("compiler error");
+            }*/
+        }
+        sB.append(opStore); //something that returns an string //switch statement
         // if op < > <= >= == && || //itok
-
+        if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "==" || opStore == "||" || opStore == "&&"){
+            sB.append(") ? 1 : 0");
+        }
         binaryExpr.getRight().visit(this,arg);
         sB.append(")");
         //check comparison
@@ -167,7 +207,7 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        //sB.append(randomExpr.visit(this,arg));
+       // sB.append(randomExpr.visit(this,arg));
         sB.append(Math.floor(Math.random() *256));
         //HELP  what does it mean when it says will require import
         return sB.toString();
