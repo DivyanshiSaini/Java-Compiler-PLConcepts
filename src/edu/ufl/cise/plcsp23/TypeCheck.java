@@ -58,7 +58,7 @@ public class TypeCheck implements ASTVisitor {
             boolean c = false;
             Stack<Integer> tempStack = (Stack<Integer>) scope_stack.clone();
            // Iterator scopeCheck = scope_stack.iterator();
-
+            // store scope #
             if(!sTable.containsKey(name)){
                 throw new TypeCheckException("Lookup key not found");
             }
