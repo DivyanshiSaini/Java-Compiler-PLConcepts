@@ -285,8 +285,8 @@ public class CodeGen implements ASTVisitor {
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         sB.append(" return ");
-        sB.append(returnStatement.getE().visit(this,arg));
-        sB.append(returnStatement.getE());
+        sB.append(returnStatement.getE().visit(this,arg) + ";");
+        //sB.append(returnStatement.getE());
         return sB.toString();
     }
 
