@@ -11,12 +11,14 @@ public class CodeGen implements ASTVisitor {
     CodeGen (String pName){
         packageName = pName;
     }
+    Program p;
+
 
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-
+        p = program;
         //HELP what else to add
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
         sB.append("import java.lang.Math; \n \n");
@@ -90,15 +92,12 @@ public class CodeGen implements ASTVisitor {
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
 
         if(declaration.getInitializer() != null) {
+            sB.append(" = ");
 
-        }
-        sB.append(" = ");
-        if(s.toString() == "String"){
-            Object temp = declaration.getInitializer().visit(this,arg);
-            sB.append(" \"" + declaration.getInitializer().visit(this,arg) + "\" ");
-        }else {
             sB.append(declaration.getInitializer().visit(this,arg));
         }
+
+
 
 
 
@@ -196,6 +195,9 @@ public class CodeGen implements ASTVisitor {
         // if op < > <= >= == && || //itok
         if (opStore == "||" || opStore == "&&"){
             //convert to bool then convert to int
+            sB.append(binaryExpr.getRight().visit(this,arg) + ")");
+            sB.append(" != 0");
+
         }
         else if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "=="){
             sB.append(binaryExpr.getRight().visit(this,arg));
@@ -276,6 +278,12 @@ public class CodeGen implements ASTVisitor {
         //check lvalue type is string
         //if they are different type cast
         //turn int into string same as declaration
+        /*Type l = (Type) statementAssign.getLv().visit(this,arg);
+        Type e = (Type) statementAssign.getE().visit(this,arg);
+
+        if(l == Type.STRING && e == Type.INT){
+            statementAssign.getE().setType(Type.STRING);
+        }*/
         sB.append(statementAssign.getLv().visit(this,arg));
         sB.append(" = ");
         sB.append(statementAssign.getE().visit(this,arg));
@@ -313,6 +321,12 @@ public class CodeGen implements ASTVisitor {
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         //check if type is int and needs to be string then type cast
+        /*Type r = (Type) returnStatement.getE().visit(this,arg);
+        Type pro =  p.getType();
+        sB.append(" return ");
+        if (pro == Type.STRING && r == Type.INT) {
+            returnStatement.getE().setType(Type.STRING);
+        }*/
         sB.append(" return ");
         sB.append(returnStatement.getE().visit(this,arg));
         return sB.toString();
@@ -327,6 +341,8 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+
+
         sB.append(numLitExpr.getValue());
         return sB.toString();
     }
