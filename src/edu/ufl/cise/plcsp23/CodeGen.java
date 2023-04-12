@@ -87,6 +87,8 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+        Type l = declaration.getNameDef().getType();
+        Type r = declaration.getInitializer().getType();
 
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
@@ -99,11 +101,13 @@ public class CodeGen implements ASTVisitor {
 
         if(declaration.getInitializer() != null){
             sB.append(" = ");
-            sB.append(declaration.getInitializer().visit(this,arg));
-
-        }/*else {
-            sB.append( "; \n");
-        }*/
+            if(l == Type.STRING && r == Type.INT){
+                //String.valueOf(1);
+                sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
+            } else {
+                sB.append(declaration.getInitializer().visit(this,arg));
+            }
+        }
 
 
         return sB.toString();
@@ -288,17 +292,18 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-       /* Type l = (Type) statementAssign.getLv().visit(this,arg);
+        Type l = statementAssign.getLv().getIdent().getDef().getType();
         Type r = statementAssign.getE().getType();
-        System.out.println(  " " + r);*/
+        System.out.println(  " " + r);
 
         sB.append(statementAssign.getLv().visit(this,arg));
         sB.append(" = ");
-        /*if(l == Type.STRING && r == Type.INT){
-            sB.append("String.valueOf(" + statementAssign.getE() + ")");
-        } else {*/
+        if(l == Type.STRING && r == Type.INT){
+            //String.valueOf(1);
+            sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
+        } else {
         sB.append(statementAssign.getE().visit(this,arg));
-        /*}*/
+        }
         return sB.toString();
     }
     @Override
@@ -334,13 +339,15 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append(" return ");
         Type t = p.getType();
-        /*if(t == Type.STRING){
-            if(!b){
-                sB.append( "\"" + returnStatement.getE().visit(this,arg) + "\"");
-            }
-        } else {*/
-            sB.append(returnStatement.getE().visit(this, arg));
-        //}
+        Type ty = returnStatement.getE().getType();
+
+        if(t == Type.STRING && ty == Type.INT){
+            //String.valueOf(1);
+            sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
+        }
+        else {
+        sB.append(returnStatement.getE().visit(this, arg));
+        }
         return sB.toString();
     }
 

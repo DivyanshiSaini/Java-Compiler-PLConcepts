@@ -165,6 +165,7 @@ public class TypeCheck implements ASTVisitor {
                 } else {
                     check(false, declaration, "declaration not compatible");
                 }
+
             }
 
             //HELP do I need an else statement here
@@ -501,7 +502,10 @@ public class TypeCheck implements ASTVisitor {
             else {
                 check(false, lValue, "lvalue error");
             }
+
+            lValue.getIdent().setDef(nDef);
         }
+
 
         return resultType;
     }
