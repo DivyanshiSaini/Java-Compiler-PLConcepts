@@ -58,12 +58,14 @@ public class CodeGen implements ASTVisitor {
 
         for(int i = 0; i < bL.size(); i++){
             //bL.get(i).visit(this,arg);
+            sB.append("\t \t");
             sB.append(bL.get(i).visit(this,arg));
             sB.append("; \n");
         }
 
         List<Statement> sL = block.getStatementList();
         for(int i = 0; i < sL.size(); i++){
+            sB.append("\t \t");
             sB.append(sL.get(i).visit(this,arg));
             sB.append("; \n");
 
@@ -75,14 +77,17 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
         sB.append(s + " ");
+
+        sB.append(declaration.getNameDef().getIdent().getName());
+
         if(declaration.getInitializer() != null){
-           sB.append(declaration.getNameDef().getIdent().getName());
             sB.append(" = ");
-            if(s == "String"){
-                sB.append("\"" + declaration.getInitializer().visit(this,arg));
+            if(s.toString() == "String"){
+                sB.append(" \"" + declaration.getInitializer().visit(this,arg) + "\" ");
             }else {
                 sB.append(declaration.getInitializer().visit(this,arg));
             }
@@ -268,7 +273,7 @@ public class CodeGen implements ASTVisitor {
         //sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
         sB.append("ConsoleIO.write(");
         sB.append(statementWrite.getE().visit(this,arg));
-        sB.append(");");
+        sB.append(")");
         return sB.toString();
     }
 
@@ -282,9 +287,8 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append("while(");
         sB.append(whileStatement.getGuard().visit(this,arg));
-        sB.append(" != 0) {");
-        sB.append(whileStatement.getBlock().visit(this,arg));
-        sB.append("}");
+        sB.append(" != 0) { \n");
+        sB.append("\t" + whileStatement.getBlock().visit(this,arg) + "} \n");
         return sB.toString();
     }
 
@@ -304,13 +308,10 @@ public class CodeGen implements ASTVisitor {
     }
 
 
-
-
     @Override
     public Object visitIdent(Ident ident, Object arg) throws PLCException {
         return null;
     }
-
 
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
