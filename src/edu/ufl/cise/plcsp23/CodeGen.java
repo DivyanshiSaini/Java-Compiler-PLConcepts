@@ -83,17 +83,19 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+        /*Type e = (Type) declaration.getInitializer().visit(this, arg);
+        Type n = (Type) declaration.getNameDef().visit(this,arg);*/
 
-        declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
         sB.append(s + " ");
-
+          /*  if (n == Type.STRING && e==Type.INT){
+                declaration.getInitializer().setType(Type.INT);
+            }*/
 
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
 
         if(declaration.getInitializer() != null) {
             sB.append(" = ");
-
             sB.append(declaration.getInitializer().visit(this,arg));
         }
 
@@ -326,6 +328,7 @@ public class CodeGen implements ASTVisitor {
         sB.append(" return ");
         if (pro == Type.STRING && r == Type.INT) {
             returnStatement.getE().setType(Type.STRING);
+            sB.append(returnStatement.getE().visit(this,arg));
         }*/
         sB.append(" return ");
         sB.append(returnStatement.getE().visit(this,arg));
