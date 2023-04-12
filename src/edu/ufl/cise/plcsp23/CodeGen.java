@@ -126,8 +126,9 @@ public class CodeGen implements ASTVisitor {
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
+
         StringBuilder sB = new StringBuilder();
-        sB.append("( ");
+        sB.append("( (");
         sB.append(binaryExpr.getLeft().visit(this,arg));
         Kind op = binaryExpr.getOp();
         String opStore = "";
@@ -168,10 +169,11 @@ public class CodeGen implements ASTVisitor {
         sB.append(opStore); //something that returns an string //switch statement
         // if op < > <= >= == && || //itok
         if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "==" || opStore == "||" || opStore == "&&"){
+            sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(") ? 1 : 0");
-        }
-        binaryExpr.getRight().visit(this,arg);
-        sB.append(")");
+        } else{
+        sB.append(binaryExpr.getRight().visit(this,arg));}
+        sB.append(");");
         //check comparison
         //append ? 1 : 0
         // make sure parens are correct
