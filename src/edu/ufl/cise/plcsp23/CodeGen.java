@@ -59,11 +59,13 @@ public class CodeGen implements ASTVisitor {
         for(int i = 0; i < bL.size(); i++){
             //bL.get(i).visit(this,arg);
             sB.append(bL.get(i).visit(this,arg));
+            sB.append("; \n");
         }
 
         List<Statement> sL = block.getStatementList();
         for(int i = 0; i < sL.size(); i++){
             sB.append(sL.get(i).visit(this,arg));
+            sB.append("; \n");
 
         }
         return sB.toString();
@@ -77,9 +79,17 @@ public class CodeGen implements ASTVisitor {
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
         sB.append(s + " ");
         if(declaration.getInitializer() != null){
+           sB.append(declaration.getNameDef().getIdent().getName());
             sB.append(" = ");
-            sB.append(declaration.getInitializer().visit(this,arg) + "; \n");
-        }
+            if(s == "String"){
+                sB.append("\"" + declaration.getInitializer().visit(this,arg));
+            }else {
+                sB.append(declaration.getInitializer().visit(this,arg));
+            }
+        }/*else {
+            sB.append( "; \n");
+        }*/
+
 
         return sB.toString();
     }
@@ -173,7 +183,7 @@ public class CodeGen implements ASTVisitor {
 
         if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "==" || opStore == "||" || opStore == "&&"){
             sB.append(binaryExpr.getRight().visit(this,arg));
-            sB.append(") ? 1 : 0");
+            sB.append(" ? 1 : 0");
         } else{
         sB.append(binaryExpr.getRight().visit(this,arg));}
         sB.append(")");
@@ -272,7 +282,7 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append("while(");
         sB.append(whileStatement.getGuard().visit(this,arg));
-        sB.append(" !=0 ) {");
+        sB.append(" != 0) {");
         sB.append(whileStatement.getBlock().visit(this,arg));
         sB.append("}");
         return sB.toString();
@@ -289,7 +299,7 @@ public class CodeGen implements ASTVisitor {
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         sB.append(" return ");
-        sB.append(returnStatement.getE().visit(this,arg) + ";");
+        sB.append(returnStatement.getE().visit(this,arg));
         return sB.toString();
     }
 
