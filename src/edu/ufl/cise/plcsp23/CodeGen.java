@@ -130,7 +130,7 @@ public class CodeGen implements ASTVisitor {
         sB.append(conditionalExpr.getTrueCase().visit(this,arg));
         sB.append(" : ");
         sB.append(conditionalExpr.getFalseCase().visit(this,arg));
-        sB.append("; ) ");
+        sB.append(") ");
 
         //question
         return sB.toString();
