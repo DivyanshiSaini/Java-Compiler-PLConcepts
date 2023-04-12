@@ -1,7 +1,7 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
-
+import java.lang.*;
 import java.lang.reflect.Parameter;
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.List;
@@ -17,7 +17,9 @@ public class CodeGen implements ASTVisitor {
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
 
+        //HELP what else to add
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
+        sB.append("import java.lang.*; \n");
         sB.append("import java.lang.Math; \n \n");
 
         sB.append("public class ");
@@ -45,8 +47,7 @@ public class CodeGen implements ASTVisitor {
 
         sB.append(") { \n");
         sB.append(program.getBlock().visit(this, arg));
-        sB.append(" \t } }");
-
+        sB.append(" \t } \n }");
 
         return sB.toString();
     }
@@ -57,7 +58,6 @@ public class CodeGen implements ASTVisitor {
         List<Declaration> bL = block.getDecList();
 
         for(int i = 0; i < bL.size(); i++){
-            //bL.get(i).visit(this,arg);
             sB.append("\t \t");
             sB.append(bL.get(i).visit(this,arg));
             sB.append("; \n");
@@ -102,7 +102,7 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitNameDef(NameDef nameDef, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        nameDef.getType();
+        //nameDef.getType();
         sB.append(nameDef.getType().name());
         nameDef.getIdent().visit(this,arg);
         sB.append(nameDef.getIdent().getName());
@@ -143,46 +143,52 @@ public class CodeGen implements ASTVisitor {
 
     @Override
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
-
         StringBuilder sB = new StringBuilder();
         sB.append("(");
-        sB.append(binaryExpr.getLeft().visit(this,arg));
+
         Kind op = binaryExpr.getOp();
         String opStore = "";
         switch(op) {
             //|,&
-            case BITOR ->{opStore = "|"  ;}
-            case BITAND->{opStore = "&"  ;}
+            case BITOR ->opStore = "|";
+            case BITAND->opStore = "&";
             //||
-            case OR ->{opStore = "||";}
+            case OR ->opStore = "||";
             //&&
-            case AND ->{opStore = "&&";}
+            case AND ->opStore = "&&";
             //<
-            case LT->{opStore = "<";}
+            case LT->opStore = "<";
             //>
-            case GT ->{opStore = ">";}
+            case GT ->opStore = ">";
             //<=
-            case LE->{opStore = "<=";}
+            case LE->opStore = "<=";
             //>=
-            case GE ->{opStore = ">=";}
+            case GE ->opStore = ">=";
             // ==
-            case EQ ->{opStore = "==";}
+            case EQ ->opStore = "==";
             // =
-            case PLUS ->{opStore = "+";}
+            case PLUS ->opStore = "+";
             // =
-            case MINUS ->{opStore = "-";}
+            case MINUS ->opStore = "-";
             // =
-            case TIMES ->{opStore = "*";}
+            case TIMES ->opStore = "*";
             // =
-            case DIV ->{opStore = "/";}
+            case DIV ->opStore = "/";
             // =
-            case MOD ->{opStore = "%";}
+            case MOD ->opStore = "%";
             //**
-            case EXP -> { opStore = "Math.pow("; }
+            case EXP ->opStore = "Math.pow";
             /*default -> {
                 throw new TypeCheckException("compiler error");
             }*/
         }
+        if(opStore == "Math.pow"){
+            sB.append("(" + binaryExpr.getLeft().visit(this,arg) +"," + binaryExpr.getRight().visit(this,arg) + ")");
+
+        } else {
+            sB.append(binaryExpr.getLeft().visit(this,arg));
+        }
+
         sB.append(opStore); //something that returns an string //switch statement
         // if op < > <= >= == && || //itok
 
@@ -193,9 +199,7 @@ public class CodeGen implements ASTVisitor {
         sB.append(binaryExpr.getRight().visit(this,arg));}
         sB.append(")");
 
-        //check comparison
-        //append ? 1 : 0
-        // make sure parens are correct
+
         return sB.toString();
     }
 
@@ -214,7 +218,7 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append(identExpr.getName());
+        sB.append(identExpr.getName()); //_scope
         return sB.toString();
     }
 
@@ -277,11 +281,6 @@ public class CodeGen implements ASTVisitor {
         return sB.toString();
     }
 
-
-    //Generate code to invoke
-    //ConsoleIO.write(EXPR)
-    //where EXPR is obtained by visiting Expr.
-    //This will also require an import statement
     @Override
     public Object visitWhileStatement(WhileStatement whileStatement, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
