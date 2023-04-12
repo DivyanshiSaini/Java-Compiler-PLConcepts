@@ -1,8 +1,8 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
-import java.lang.*;
-import java.lang.reflect.Parameter;
+//import java.lang.*;
+//import java.lang.reflect.Parameter;
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.List;
 
@@ -12,8 +12,7 @@ public class CodeGen implements ASTVisitor {
         packageName = pName;
     }
     Program p;
-
-
+    boolean b = false;
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
@@ -21,6 +20,7 @@ public class CodeGen implements ASTVisitor {
         p = program;
         //HELP what else to add
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
+        sB.append("import java.lang.*; \n");
         sB.append("import java.lang.Math; \n \n");
 
         sB.append("public class ");
@@ -33,8 +33,9 @@ public class CodeGen implements ASTVisitor {
         program.getType();
 
         String s = program.getType().name().toLowerCase().toString().replaceAll("string", "String");
-
-
+        if (s == "String"){
+            b = true;
+        }
 
         sB.append(s);
 
@@ -44,10 +45,13 @@ public class CodeGen implements ASTVisitor {
         for (int i = 0; i < pL.size(); i++) {
             pL.get(i).visit(this, arg);
             String si = pL.get(i).getType().toString().toLowerCase().replaceAll("string", "String");
+            if (s == "String"){
+                b = true;
+            }
 
             sB.append(si + " ");
 
-            sB.append(pL.get(i).getIdent().getName().toLowerCase());
+            sB.append(pL.get(i).getIdent().getName().toLowerCase()+"_" +program.getIdent().decNumber);
             if (i != pL.size() - 1) sB.append(" , ");
         }
 
@@ -77,30 +81,29 @@ public class CodeGen implements ASTVisitor {
 
         }
         return sB.toString();
-       // return null;
+        // return null;
     }
 
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        /*Type e = (Type) declaration.getInitializer().visit(this, arg);
-        Type n = (Type) declaration.getNameDef().visit(this,arg);*/
 
+        declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
+        if (s == "String"){
+            b = true;
+        }
         sB.append(s + " ");
-          /*  if (n == Type.STRING && e==Type.INT){
-                declaration.getInitializer().setType(Type.INT);
-            }*/
 
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
 
-        if(declaration.getInitializer() != null) {
+        if(declaration.getInitializer() != null){
             sB.append(" = ");
             sB.append(declaration.getInitializer().visit(this,arg));
-        }
 
-
-
+        }/*else {
+            sB.append( "; \n");
+        }*/
 
 
         return sB.toString();
@@ -184,29 +187,40 @@ public class CodeGen implements ASTVisitor {
             // =
             case MOD ->opStore = "%";
             //**
-            case EXP ->opStore = "Math.pow";
+            case EXP ->opStore = "(int)Math.pow";
         }
         if(opStore == "(int)Math.pow"){
-            sB.append("(" + binaryExpr.getLeft().visit(this,arg) +"," + binaryExpr.getRight().visit(this,arg) + ")");
+            sB.append(opStore + "(" + binaryExpr.getLeft().visit(this,arg) +"," + binaryExpr.getRight().visit(this,arg) + ")");
+            sB.append(")");
 
-        } else {
-            sB.append(binaryExpr.getLeft().visit(this,arg));
         }
-
-        sB.append(opStore); //something that returns an string //switch statement
         // if op < > <= >= == && || //itok
-        if (opStore == "||" || opStore == "&&"){
+        else if (opStore == "||" || opStore == "&&"){
             //convert to bool then convert to int
-            sB.append(binaryExpr.getRight().visit(this,arg) + ")");
-            sB.append(" != 0");
+
+            sB.append("(" + binaryExpr.getLeft().visit(this,arg) + ")");
+            sB.append(" != 0 ");
+            sB.append(" " + opStore + " ");
+            sB.append("(" + binaryExpr.getRight().visit(this,arg) + ")");
+            sB.append(" != 0 ? "); // only case
+            sB.append(binaryExpr.getLeft().visit(this,arg));
+            sB.append(" : ");
+            sB.append(binaryExpr.getRight().visit(this,arg));
+            sB.append(") ");
 
         }
         else if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "=="){
+            sB.append(binaryExpr.getLeft().visit(this,arg));
+            sB.append(" " + opStore + " ");
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(" ? 1 : 0");
-        } else{
-        sB.append(binaryExpr.getRight().visit(this,arg));}
-        sB.append(")");
+            sB.append(")");
+        }else {
+            sB.append(binaryExpr.getLeft().visit(this,arg));
+            sB.append(" " + opStore + " "); //something that returns an string //switch statement
+            sB.append(binaryExpr.getRight().visit(this,arg));
+            sB.append(")");
+        }
 
 
         return sB.toString();
@@ -220,9 +234,7 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append("\"");
-        sB.append(stringLitExpr.getValue());
-        sB.append("\"");
+        sB.append("\"" + stringLitExpr.getValue() + "\"");
         return sB.toString();
     }
 
@@ -243,8 +255,8 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-       // sB.append(randomExpr.visit(this,arg));
-        sB.append("(int)Math.floor(Math.random() *256)");
+        // sB.append(randomExpr.visit(this,arg));
+        sB.append(Math.floor(Math.random() *256));
         //HELP  what does it mean when it says will require import
         return sB.toString();
     }
@@ -276,19 +288,17 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        //check expr type is int
-        //check lvalue type is string
-        //if they are different type cast
-        //turn int into string same as declaration
-        /*Type l = (Type) statementAssign.getLv().visit(this,arg);
-        Type e = (Type) statementAssign.getE().visit(this,arg);
+       /* Type l = (Type) statementAssign.getLv().visit(this,arg);
+        Type r = statementAssign.getE().getType();
+        System.out.println(  " " + r);*/
 
-        if(l == Type.STRING && e == Type.INT){
-            statementAssign.getE().setType(Type.STRING);
-        }*/
         sB.append(statementAssign.getLv().visit(this,arg));
         sB.append(" = ");
+        /*if(l == Type.STRING && r == Type.INT){
+            sB.append("String.valueOf(" + statementAssign.getE() + ")");
+        } else {*/
         sB.append(statementAssign.getE().visit(this,arg));
+        /*}*/
         return sB.toString();
     }
     @Override
@@ -322,16 +332,15 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        //check if type is int and needs to be string then type cast
-        /*Type r = (Type) returnStatement.getE().visit(this,arg);
-        Type pro =  p.getType();
         sB.append(" return ");
-        if (pro == Type.STRING && r == Type.INT) {
-            returnStatement.getE().setType(Type.STRING);
-            sB.append(returnStatement.getE().visit(this,arg));
-        }*/
-        sB.append(" return ");
-        sB.append(returnStatement.getE().visit(this,arg));
+        Type t = p.getType();
+        /*if(t == Type.STRING){
+            if(!b){
+                sB.append( "\"" + returnStatement.getE().visit(this,arg) + "\"");
+            }
+        } else {*/
+            sB.append(returnStatement.getE().visit(this, arg));
+        //}
         return sB.toString();
     }
 
@@ -344,20 +353,8 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitNumLitExpr(NumLitExpr numLitExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-
-
         sB.append(numLitExpr.getValue());
         return sB.toString();
     }
-
-
-
-
-
-
-
-
-
-
 
 }
