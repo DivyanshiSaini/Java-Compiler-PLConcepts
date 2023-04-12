@@ -12,33 +12,49 @@ public class CodeGen implements ASTVisitor {
     }
 
 
+   /* public static class builderString{
+        StringBuilder sBuild = new StringBuilder();
+         sB.append("public class ");
+    }*/
+    public String funct(String s){
+        if(s == "string") {
+            s = s.substring(0, 1).toUpperCase() + s.substring(1);
+           // System.out.println("hellooooo" + s);
+        }
+        return s;
+    }
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
 
-        sB.append("public class ");
-        program.getIdent().visit(this,arg); //gets the name
-        sB.append(program.getIdent().getName());
+        if(packageName != null) {
+            sB.append("public class ");
+            program.getIdent().visit(this, arg); //gets the name
+            sB.append(program.getIdent().getName());
 
-        sB.append(" { \n");
-        sB.append("\t public static ");
-        program.getType();
-        sB.append(program.getType().name().toLowerCase());
-        sB.append(" apply(");
+            sB.append(" { \n");
+            sB.append("\t public static ");
+            program.getType();
+            String s = funct(program.getType().name().toLowerCase().toString());
 
-        List<NameDef> pL = program.getParamList();
-        for(int i = 0; i < pL.size(); i++){
-            pL.get(i).visit(this,arg);
-            sB.append(pL.get(i).getType().toString().toLowerCase());
-            sB.append(" ");
-            sB.append(pL.get(i).getIdent().getName().toLowerCase());
-            if(i != pL.size()-1)  sB.append(" , ");
+            sB.append(s);
+            sB.append(" apply(");
+
+            List<NameDef> pL = program.getParamList();
+            for (int i = 0; i < pL.size(); i++) {
+                pL.get(i).visit(this, arg);
+                String si = funct(program.getType().name().toLowerCase().toString());
+                sB.append(si);
+                sB.append(" ");
+                sB.append(pL.get(i).getIdent().getName().toLowerCase());
+                if (i != pL.size() - 1) sB.append(" , ");
+            }
+
+            sB.append(") { \n");
+            program.getBlock().visit(this, arg);
+            sB.append(" \t } }");
         }
-
-        sB.append(") { \n");
-        program.getBlock().visit(this,arg);
-        sB.append(" \t } }");
 
         return sB.toString();
     }
@@ -177,7 +193,7 @@ public class CodeGen implements ASTVisitor {
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         if(lValue.getPixelSelector() == null && lValue.getColor() == null) {
-            sB.append(lValue.getIdent());
+            sB.append(lValue.getIdent().getName());
         }
         return sB.toString();
     }
