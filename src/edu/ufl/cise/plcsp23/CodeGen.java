@@ -73,12 +73,14 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-
         declaration.getNameDef().visit(this,arg);
+        String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
+        sB.append(s + " ");
         if(declaration.getInitializer() != null){
             sB.append(" = ");
-            sB.append(declaration.getInitializer().visit(this,arg));
+            sB.append(declaration.getInitializer().visit(this,arg) + "; \n");
         }
+
         return sB.toString();
     }
 
@@ -118,7 +120,7 @@ public class CodeGen implements ASTVisitor {
         sB.append(conditionalExpr.getTrueCase().visit(this,arg));
         sB.append(" : ");
         sB.append(conditionalExpr.getFalseCase().visit(this,arg));
-        sB.append(" ) ");
+        sB.append("; ) ");
 
         //question
         return sB.toString();
@@ -128,7 +130,7 @@ public class CodeGen implements ASTVisitor {
     public Object visitBinaryExpr(BinaryExpr binaryExpr, Object arg) throws PLCException {
 
         StringBuilder sB = new StringBuilder();
-        sB.append("( (");
+        sB.append("(");
         sB.append(binaryExpr.getLeft().visit(this,arg));
         Kind op = binaryExpr.getOp();
         String opStore = "";
@@ -168,12 +170,14 @@ public class CodeGen implements ASTVisitor {
         }
         sB.append(opStore); //something that returns an string //switch statement
         // if op < > <= >= == && || //itok
+
         if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "==" || opStore == "||" || opStore == "&&"){
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(") ? 1 : 0");
         } else{
         sB.append(binaryExpr.getRight().visit(this,arg));}
-        sB.append(");");
+        sB.append(")");
+
         //check comparison
         //append ? 1 : 0
         // make sure parens are correct
@@ -254,7 +258,7 @@ public class CodeGen implements ASTVisitor {
         //sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
         sB.append("ConsoleIO.write(");
         sB.append(statementWrite.getE().visit(this,arg));
-        sB.append(")");
+        sB.append(");");
         return sB.toString();
     }
 
@@ -286,7 +290,6 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append(" return ");
         sB.append(returnStatement.getE().visit(this,arg) + ";");
-        //sB.append(returnStatement.getE());
         return sB.toString();
     }
 
