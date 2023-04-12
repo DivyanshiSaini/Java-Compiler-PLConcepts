@@ -197,6 +197,7 @@ public class TypeCheck implements ASTVisitor {
         check(nameDef.getType() != Type.VOID, nameDef, "Type is Image");
 
        //HELP IS SCOPE CURRENT_NUM CORRECT??
+        nameDef.decNumber = symbolTable.current_num;
         symbolTable.insert(nameDef.getIdent().getName(), nameDef, symbolTable.current_num);
        return nameDef.getType();
     }
@@ -387,8 +388,10 @@ public class TypeCheck implements ASTVisitor {
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException{
         // < = we are good or else error
         //HELP IS THIS IMPLEMENTED CORRECTLY??
+
         String name = identExpr.getName();
         NameDef nDef = symbolTable.lookup(name);
+        identExpr.decNumber = nDef.decNumber;
         check(nDef != null, identExpr, "undefined identifier " + name);
         identExpr.setType(nDef.getType()); //save declaration--will be useful later.
 
@@ -462,6 +465,7 @@ public class TypeCheck implements ASTVisitor {
         if(lValue.getIdent() != null){
             i = (Type) lValue.getIdent().visit(this,arg);
             NameDef nDef = symbolTable.lookup(lValue.getIdent().getName()); // HELP IS THIS NEEDED?
+            lValue.decNumber = nDef.decNumber;
             i = nDef.getType();
             resultType = i;
             //HELP HOW TO ACCESS CHANNEL SELECTOR

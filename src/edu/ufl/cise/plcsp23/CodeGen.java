@@ -19,7 +19,6 @@ public class CodeGen implements ASTVisitor {
 
         //HELP what else to add
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
-        sB.append("import java.lang.*; \n");
         sB.append("import java.lang.Math; \n \n");
 
         sB.append("public class ");
@@ -87,18 +86,20 @@ public class CodeGen implements ASTVisitor {
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
         sB.append(s + " ");
 
-        sB.append(declaration.getNameDef().getIdent().getName());
 
-        if(declaration.getInitializer() != null){
-            sB.append(" = ");
-            if(s.toString() == "String"){
-                sB.append(" \"" + declaration.getInitializer().visit(this,arg) + "\" ");
-            }else {
-                sB.append(declaration.getInitializer().visit(this,arg));
-            }
-        }/*else {
-            sB.append( "; \n");
-        }*/
+        sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
+
+        if(declaration.getInitializer() != null) {
+
+        }
+        sB.append(" = ");
+        if(s.toString() == "String"){
+            Object temp = declaration.getInitializer().visit(this,arg);
+            sB.append(" \"" + declaration.getInitializer().visit(this,arg) + "\" ");
+        }else {
+            sB.append(declaration.getInitializer().visit(this,arg));
+        }
+
 
 
         return sB.toString();
@@ -183,11 +184,8 @@ public class CodeGen implements ASTVisitor {
             case MOD ->opStore = "%";
             //**
             case EXP ->opStore = "Math.pow";
-            /*default -> {
-                throw new TypeCheckException("compiler error");
-            }*/
         }
-        if(opStore == "Math.pow"){
+        if(opStore == "(int)Math.pow"){
             sB.append("(" + binaryExpr.getLeft().visit(this,arg) +"," + binaryExpr.getRight().visit(this,arg) + ")");
 
         } else {
@@ -196,8 +194,10 @@ public class CodeGen implements ASTVisitor {
 
         sB.append(opStore); //something that returns an string //switch statement
         // if op < > <= >= == && || //itok
-
-        if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "==" || opStore == "||" || opStore == "&&"){
+        if (opStore == "||" || opStore == "&&"){
+            //convert to bool then convert to int
+        }
+        else if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "=="){
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(" ? 1 : 0");
         } else{
@@ -216,14 +216,16 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitStringLitExpr(StringLitExpr stringLitExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+        sB.append("\"");
         sB.append(stringLitExpr.getValue());
+        sB.append("\"");
         return sB.toString();
     }
 
     @Override
     public Object visitIdentExpr(IdentExpr identExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        sB.append(identExpr.getName()); //_scope
+        sB.append(identExpr.getName()+"_"+identExpr.decNumber); //_scope
         return sB.toString();
     }
 
@@ -238,7 +240,7 @@ public class CodeGen implements ASTVisitor {
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
        // sB.append(randomExpr.visit(this,arg));
-        sB.append(Math.floor(Math.random() *256));
+        sB.append("(int)Math.floor(Math.random() *256)");
         //HELP  what does it mean when it says will require import
         return sB.toString();
     }
@@ -262,7 +264,7 @@ public class CodeGen implements ASTVisitor {
     public Object visitLValue(LValue lValue, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         if(lValue.getPixelSelector() == null && lValue.getColor() == null) {
-            sB.append(lValue.getIdent().getName());
+            sB.append(lValue.getIdent().getName()+"_"+lValue.decNumber);
         }
         return sB.toString();
     }
@@ -270,6 +272,10 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitAssignmentStatement(AssignmentStatement statementAssign, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+        //check expr type is int
+        //check lvalue type is string
+        //if they are different type cast
+        //turn int into string same as declaration
         sB.append(statementAssign.getLv().visit(this,arg));
         sB.append(" = ");
         sB.append(statementAssign.getE().visit(this,arg));
@@ -306,6 +312,7 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitReturnStatement(ReturnStatement returnStatement, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
+        //check if type is int and needs to be string then type cast
         sB.append(" return ");
         sB.append(returnStatement.getE().visit(this,arg));
         return sB.toString();

@@ -18,7 +18,7 @@ import edu.ufl.cise.plcsp23.PLCException;
 public abstract class AST {
 
 	public final IToken firstToken;
-
+	public int decNumber;
 	public AST(IToken firstToken) {
 		this.firstToken = firstToken;
 	}
