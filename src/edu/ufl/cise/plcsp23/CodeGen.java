@@ -16,13 +16,6 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sBuild = new StringBuilder();
          sB.append("public class ");
     }*/
-    public String funct(String s){
-        if(s == "string") {
-            s = s.substring(0, 1).toUpperCase() + s.substring(1);
-           // System.out.println("hellooooo" + s);
-        }
-        return s;
-    }
 
     @Override
     public Object visitProgram(Program program, Object arg) throws PLCException {
@@ -36,7 +29,7 @@ public class CodeGen implements ASTVisitor {
             sB.append(" { \n");
             sB.append("\t public static ");
             program.getType();
-            String s = funct(program.getType().name().toLowerCase().toString());
+            String s = program.getType().name().toLowerCase().toString().replaceAll("string", "String");
 
             sB.append(s);
             sB.append(" apply(");
@@ -44,7 +37,7 @@ public class CodeGen implements ASTVisitor {
             List<NameDef> pL = program.getParamList();
             for (int i = 0; i < pL.size(); i++) {
                 pL.get(i).visit(this, arg);
-                String si = funct(program.getType().name().toLowerCase().toString());
+                String si = program.getType().name().toLowerCase().toString().replaceAll("string", "String");
                 sB.append(si);
                 sB.append(" ");
                 sB.append(pL.get(i).getIdent().getName().toLowerCase());
