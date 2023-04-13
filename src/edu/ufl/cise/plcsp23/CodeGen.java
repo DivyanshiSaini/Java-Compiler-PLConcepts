@@ -213,10 +213,11 @@ public class CodeGen implements ASTVisitor {
             sB.append(" " + opStore + " ");
             sB.append("(" + binaryExpr.getRight().visit(this,arg) + ")");
             sB.append(" != 0 ? "); // only case
-            sB.append(binaryExpr.getLeft().visit(this,arg));
+            sB.append(" 1 : 0)");
+           /* sB.append(binaryExpr.getLeft().visit(this,arg));
             sB.append(" : ");
             sB.append(binaryExpr.getRight().visit(this,arg));
-            sB.append(") ");
+            sB.append(") ");*/
 
         }
         else if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "=="){
