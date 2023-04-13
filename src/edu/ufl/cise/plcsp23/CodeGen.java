@@ -77,9 +77,15 @@ public class CodeGen implements ASTVisitor {
         for(int i = 0; i < sL.size(); i++){
             sB.append("\t \t");
             sB.append(sL.get(i).visit(this,arg));
-            sB.append("; \n");
+            if(!(sL.get(i) instanceof WhileStatement)){
+                sB.append("; \n");
+            }
+            else{
+                sB.append("\n");
+            }
 
         }
+
         return sB.toString();
         // return null;
     }
@@ -88,7 +94,6 @@ public class CodeGen implements ASTVisitor {
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         Type l = declaration.getNameDef().getType();
-        Type r = declaration.getInitializer().getType();
 
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
@@ -100,6 +105,7 @@ public class CodeGen implements ASTVisitor {
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
 
         if(declaration.getInitializer() != null){
+            Type r = declaration.getInitializer().getType();
             sB.append(" = ");
             if(l == Type.STRING && r == Type.INT){
                 //String.valueOf(1);
@@ -260,7 +266,9 @@ public class CodeGen implements ASTVisitor {
     public Object visitRandomExpr(RandomExpr randomExpr, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         // sB.append(randomExpr.visit(this,arg));
-        sB.append(Math.floor(Math.random() *256));
+
+        //use a wrapper integer function
+        sB.append((int)Math.floor(Math.random() *256));
         //HELP  what does it mean when it says will require import
         return sB.toString();
     }
@@ -326,9 +334,6 @@ public class CodeGen implements ASTVisitor {
         sB.append("\t" + whileStatement.getBlock().visit(this,arg) + "} \n");
         return sB.toString();
     }
-
-
-
 
 
     //return Expr
