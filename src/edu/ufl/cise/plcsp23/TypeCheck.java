@@ -476,7 +476,7 @@ public class TypeCheck implements ASTVisitor {
             }
             if(lValue.getColor() != null){
                 lValue.getColor();
-                lValue.getColor();
+                //lValue.getColor();
                 c = true;
             }
 

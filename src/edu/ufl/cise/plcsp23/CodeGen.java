@@ -1,8 +1,11 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
+import edu.ufl.cise.plcsp23.runtime.ImageOps;
+import edu.ufl.cise.plcsp23.runtime.FileURLIO;
 //import java.lang.*;
 //import java.lang.reflect.Parameter;
+
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.List;
 
@@ -20,6 +23,9 @@ public class CodeGen implements ASTVisitor {
         p = program;
         //HELP what else to add
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
+        sB.append("import edu.ufl.cise.plcsp23.runtime.PixelOps; \n");
+        sB.append("import edu.ufl.cise.plcsp23.runtime.ImageOps; \n");
+        sB.append("import edu.ufl.cise.plcsp23.runtime.FileURLIO; \n");
         sB.append("import java.lang.*; \n");
         sB.append("import java.lang.Math; \n \n");
 
@@ -97,21 +103,49 @@ public class CodeGen implements ASTVisitor {
 
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
-        if (s == "String"){
+       /* if (s == "String"){
             b = true;
-        }
-        sB.append(s + " ");
+        }*/
 
+        sB.append(s + " ");
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
 
         if(declaration.getInitializer() != null){
             Type r = declaration.getInitializer().getType();
             sB.append(" = ");
             if(l == Type.STRING && r == Type.INT){
-                //String.valueOf(1);
                 sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
             } else {
                 sB.append(declaration.getInitializer().visit(this,arg));
+            }
+        }
+        
+        if(declaration.getNameDef().getDimension() == null){
+            //initial-> string
+            if(declaration.getInitializer().getType() == Type.STRING){
+                sB.append("FileURLIO.readImage(");
+                sB.append(declaration.getInitializer().visit(this,arg) + ")");
+            }
+            if(declaration.getInitializer().getType() == Type.IMAGE){
+                sB.append("ImageOps.cloneImage(");
+                sB.append(declaration.getInitializer().visit(this,arg) + ")");
+            }
+        } else if (declaration.getNameDef().getDimension() != null) {
+            //default image ???
+            if(declaration.getInitializer() == null){
+                sB.append("ImageOps.makeImage(");
+                sB.append(declaration.getNameDef().getDimension().getWidth() + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight() + ")");
+            } else if (declaration.getInitializer().getType() == Type.STRING) {
+                sB.append("FileURLIO.readImage(");
+                sB.append(declaration.getInitializer()+ ",");
+                sB.append(declaration.getNameDef().getDimension().getWidth() + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight() + ")");
+            } else if (declaration.getInitializer().getType() == Type.IMAGE) {
+                sB.append("ImageOps.copyAndResize(");
+                sB.append(declaration.getInitializer()+ ",");
+                sB.append(declaration.getNameDef().getDimension().getWidth() + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight() + ")");
             }
         }
 
@@ -133,7 +167,94 @@ public class CodeGen implements ASTVisitor {
 
     @Override
     public Object visitUnaryExprPostFix(UnaryExprPostfix unaryExprPostfix, Object arg) throws PLCException {
-        return null;
+        StringBuilder sB = new StringBuilder();
+
+        Type pExpr = unaryExprPostfix.getPrimary().getType();
+        boolean p = false;
+        boolean c = false;
+
+        if(pExpr == Type.IMAGE){
+            if(unaryExprPostfix.getPixel() != null){
+                p = true;
+            }
+            if(unaryExprPostfix.getColor() != null){
+                c = true;
+            }
+
+            //p, no c
+            if(p && !c){
+                sB.append("ImageOps.getRGB(");
+                sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
+                sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
+                sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + ")");
+            } //p & c
+            else if(p && c){
+                /*String color = "";
+                //red
+                if(color = "r"){
+                    sB.append("PixelOps.red(ImageOps.getRGB(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
+                    sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
+                    sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
+                }
+                //green
+                else if(color = "g"){
+                    sB.append("PixelOps.grn(ImageOps.getRGB(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
+                    sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
+                    sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
+                }
+                //blue
+                else if(color = "b"){
+                    sB.append("PixelOps.blu(ImageOps.getRGB(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
+                    sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
+                    sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
+                }*/
+            }
+            //no p c
+            else if (!p && c) {
+
+              /*  String color = "";
+                //red
+                if(color = "r"){
+                    sB.append("ImageOps.extractRed(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                }
+                //green
+                else if(color = "g"){
+                    sB.append("ImageOps.extractGrn(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                }
+                //blue
+                else if(color = "b"){
+                    sB.append("ImageOps.extractBlu(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                }*/
+            }
+        } else if (pExpr == Type.PIXEL) {
+            if (!p && c) {
+
+              /*  String color = "";
+                //red
+                if(color = "r"){
+                    sB.append("ImageOps.extractRed(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                }
+                //green
+                else if(color = "g"){
+                    sB.append("ImageOps.extractGrn(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                }
+                //blue
+                else if(color = "b"){
+                    sB.append("ImageOps.extractBlu(");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");*/
+                }
+
+        }
+
+        return sB.toString();
     }
     @Override
     public Object visitPixelFuncExpr(PixelFuncExpr pixelFuncExpr, Object arg) throws PLCException {
@@ -198,11 +319,15 @@ public class CodeGen implements ASTVisitor {
             case MOD ->opStore = "%";
             //**
             case EXP ->opStore = "(int)Math.pow";
+
         }
+        //IMAGE
+        Type expr0 = binaryExpr.getLeft().getType();
+        Type expr1 = binaryExpr.getRight().getType();
+
         if(opStore == "(int)Math.pow"){
             sB.append(opStore + "(" + binaryExpr.getLeft().visit(this,arg) +"," + binaryExpr.getRight().visit(this,arg) + ")");
             sB.append(")");
-
         }
         // if op < > <= >= == && || //itok
         else if (opStore == "||" || opStore == "&&"){
@@ -226,7 +351,24 @@ public class CodeGen implements ASTVisitor {
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(" ? 1 : 0");
             sB.append(")");
-        }else {
+        } else if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
+            if(expr0 == Type.IMAGE){
+                if(expr1 == Type.IMAGE){
+                    sB.append("ImageOps.binaryImageImageOp(" + opStore + ",");
+                    sB.append(binaryExpr.getLeft().visit(this,arg) + ",");
+                    sB.append(binaryExpr.getRight().visit(this,arg) + ")");
+                } else if (expr1 == Type.INT){
+                    sB.append("ImageOps.binaryImageScalarOp(" + opStore + ",");
+                    sB.append(binaryExpr.getLeft().visit(this,arg) + ",");
+                    sB.append(binaryExpr.getRight().visit(this,arg) + ")");
+                }
+            } else if (expr0 == Type.PIXEL && expr1 == Type.PIXEL){
+                sB.append("ImageOps.binaryPackedPixelPixelOp(" + opStore + ",");
+                sB.append(binaryExpr.getLeft().visit(this,arg) + ",");
+                sB.append(binaryExpr.getRight().visit(this,arg) + ")");
+            }
+            sB.append(")");
+        } else {
             sB.append(binaryExpr.getLeft().visit(this,arg));
             sB.append(" " + opStore + " "); //something that returns an string //switch statement
             sB.append(binaryExpr.getRight().visit(this,arg));
@@ -239,7 +381,30 @@ public class CodeGen implements ASTVisitor {
 
     @Override
     public Object visitUnaryExpr(UnaryExpr unaryExpr, Object arg) throws PLCException {
-        return null;
+        StringBuilder sB = new StringBuilder();
+
+        Kind op = unaryExpr.getOp();
+        Type unaryType = unaryExpr.getE().getType();
+
+        switch(op) {
+            //!,-
+            case BANG -> {
+                if (unaryType == Type.INT) {
+                    sB.append("((");
+                    sB.append(unaryExpr.getE().visit(this,arg));
+                    sB.append(" != 0) ? "); // only case
+                    sB.append(" 1 : 0)");
+                }
+            }
+            case MINUS->{
+                if(unaryType == Type.INT) {
+                    sB.append(unaryExpr.getE().visit(this,arg));
+                }
+            }
+        }
+
+
+        return sB.toString();
     }
 
     @Override
@@ -276,17 +441,32 @@ public class CodeGen implements ASTVisitor {
 
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
-        return null;
+        StringBuilder sB = new StringBuilder();
+        //HELP should I check if type is INT?
+        sB.append(pixelSelector.getX().visit(this,arg) + ",");
+        sB.append(pixelSelector.getY().visit(this,arg));
+        return sB.toString();
     }
 
     @Override
     public Object visitExpandedPixelExpr(ExpandedPixelExpr expandedPixelExpr, Object arg) throws PLCException {
-        return null;
+        StringBuilder sB = new StringBuilder();
+        sB.append("PixelOps.pack(");
+        sB.append(expandedPixelExpr.getRedExpr().visit(this,arg) + ",");
+        sB.append(expandedPixelExpr.getGrnExpr().visit(this,arg) + ",");
+        sB.append(expandedPixelExpr.getBluExpr().visit(this,arg));
+        sB.append(")");
+        return sB.toString();
     }
 
     @Override
     public Object visitDimension(Dimension dimension, Object arg) throws PLCException {
-        return null;
+        StringBuilder sB = new StringBuilder();
+        sB.append(dimension.getHeight().visit(this,arg));
+        sB.append(" , ");
+        sB.append(dimension.getWidth().visit(this,arg));
+
+        return sB.toString();
     }
 
     @Override
@@ -295,6 +475,8 @@ public class CodeGen implements ASTVisitor {
         if(lValue.getPixelSelector() == null && lValue.getColor() == null) {
             sB.append(lValue.getIdent().getName()+"_"+lValue.decNumber);
         }
+
+
         return sB.toString();
     }
 
@@ -320,7 +502,12 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         // HELP what does it mean to import???
         //sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
-        sB.append("ConsoleIO.write(");
+        if(statementWrite.getE().getType() == Type.PIXEL){
+            sB.append("ConsoleIO.writePixel(");
+        } else {
+            sB.append("ConsoleIO.write(");
+        }
+
         sB.append(statementWrite.getE().visit(this,arg));
         sB.append(")");
         return sB.toString();
@@ -348,7 +535,6 @@ public class CodeGen implements ASTVisitor {
         Type ty = returnStatement.getE().getType();
 
         if(t == Type.STRING && ty == Type.INT){
-            //String.valueOf(1);
             sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
         }
         else {
