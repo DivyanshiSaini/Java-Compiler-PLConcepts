@@ -19,7 +19,6 @@ public class CodeGen implements ASTVisitor {
     public Object visitProgram(Program program, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         p = program;
-        //HELP what else to add
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
         sB.append("import edu.ufl.cise.plcsp23.runtime.PixelOps; \n");
         sB.append("import edu.ufl.cise.plcsp23.runtime.ImageOps; \n");
@@ -106,34 +105,36 @@ public class CodeGen implements ASTVisitor {
 
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
-
         s = s.replaceAll("image","BufferedImage");
         s = s.replaceAll("pixel","int");
+
 
         if (s == "String"){b = true;}
         sB.append(s + " ");
 
-        //HELP WHEN DO WE APPEND THIS
+
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
+
         if(declaration.getInitializer() != null){
             Type r = declaration.getInitializer().getType();
             sB.append(" = ");
             if(l == Type.STRING && r == Type.INT){
-                //String.valueOf(1);
                 sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
             }
-            //here p6
             else if (l == Type.IMAGE) {
+                //image with no dimension
                 if (declaration.getNameDef().getDimension() == null) {
                     if (r == Type.STRING) {
                         sB.append("FileURLIO.readImage(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ")");
                     }
-                    if (declaration.getInitializer().getType() == Type.IMAGE) {
+                    else if (declaration.getInitializer().getType() == Type.IMAGE) {
                         sB.append("ImageOps.cloneImage(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ")");
                     }
-                } else if (declaration.getNameDef().getDimension() != null) {
+                }
+                //image with dimension
+                else if (declaration.getNameDef().getDimension() != null) {
                     //default image
                     sB.append("ImageOps.makeImage(");
                     sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
@@ -154,6 +155,15 @@ public class CodeGen implements ASTVisitor {
             } else {
                     sB.append(declaration.getInitializer().visit(this,arg));
             }
+        } else if (declaration.getInitializer() == null) {
+            if(l == Type.IMAGE && declaration.getNameDef().getDimension()!= null){
+                    //default image
+                sB.append(" = ");
+                sB.append("ImageOps.makeImage(");
+                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+            }
+
         }
         return sB.toString();
     }
@@ -537,7 +547,7 @@ public class CodeGen implements ASTVisitor {
                 sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t") ;
                 sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n \t\t");
                 sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
-                sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
+               sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
                 sB.append(statementAssign.getE().visit(this,arg)); //visit UEPF
                 //sB.append(", (x+hshift) , (y + vshift) )");
                 sB.append("); \n } \n }");
