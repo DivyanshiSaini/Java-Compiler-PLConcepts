@@ -128,7 +128,7 @@ public class CodeGen implements ASTVisitor {
                         sB.append("FileURLIO.readImage(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ")");
                     }
-                    else if (declaration.getInitializer().getType() == Type.IMAGE) {
+                    else if (r == Type.IMAGE) {
                         sB.append("ImageOps.cloneImage(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ")");
                     }
@@ -136,18 +136,22 @@ public class CodeGen implements ASTVisitor {
                 //image with dimension
                 else if (declaration.getNameDef().getDimension() != null) {
                     //default image
-                    sB.append("ImageOps.makeImage(");
+                    /*sB.append("ImageOps.makeImage(");
                     sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
-                    sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + "); \n");
+                    sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + "); \n");*/
 
-                    if (declaration.getInitializer().getType() == Type.STRING) {
+                    if (r == Type.STRING) {
                         sB.append("FileURLIO.readImage(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
-                    } else if (declaration.getInitializer().getType() == Type.IMAGE) {
+                    } else if (r == Type.IMAGE) {
                         sB.append("ImageOps.copyAndResize(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+                    }else{
+                        sB.append("ImageOps.makeImage(");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
                     }
@@ -187,12 +191,9 @@ public class CodeGen implements ASTVisitor {
         boolean c = false;
 
         if(pExpr == Type.IMAGE){
-            if(unaryExprPostfix.getPixel() != null){
-                p = true;
-            }
-            if(unaryExprPostfix.getColor() != null){
-                c = true;
-            }
+            if(unaryExprPostfix.getPixel() != null){p = true;}
+            if(unaryExprPostfix.getColor() != null){c = true;}
+
             //HELP IS SYNTAX CORRECT?
             //p, no c
             if(p && !c){
@@ -202,52 +203,30 @@ public class CodeGen implements ASTVisitor {
                 sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + ")");
             } //p & c
             else if(p && c){
-
                 ColorChannel color = unaryExprPostfix.getColor();
-                //red
-                if(color == ColorChannel.red){
-                    sB.append("PixelOps.red(ImageOps.getRGB(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
-                    sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
-                    sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
-                }
-                //green
-                else if(color == ColorChannel.grn){
-                    sB.append("PixelOps.grn(ImageOps.getRGB(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
-                    sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
-                    sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
-                }
-                //blue
-                else if(color == ColorChannel.blu){
-                    sB.append("PixelOps.blu(ImageOps.getRGB(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
-                    sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
-                    sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
-                }
+                //red, green , blue
+                if(color == ColorChannel.red){sB.append("PixelOps.red(ImageOps.getRGB(");}
+                else if(color == ColorChannel.grn){sB.append("PixelOps.grn(ImageOps.getRGB(");}
+                else if(color == ColorChannel.blu){sB.append("PixelOps.blu(ImageOps.getRGB(");}
+
+                sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
+                sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
+                sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
             }
             //no p c
             else if (!p && c) {
                 ColorChannel color = unaryExprPostfix.getColor();
-                //red
-                if(color == ColorChannel.red){
-                    sB.append("ImageOps.extractRed(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
-                }
-                //green
-                else if(color == ColorChannel.grn){
-                    sB.append("ImageOps.extractGrn(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
-                }
-                //blue
-                else if(color == ColorChannel.blu){
-                    sB.append("ImageOps.extractBlu(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
-                }
-            }
-        } else if (pExpr == Type.PIXEL) {
-            if (!p && c) {
+                //red, green, blue
+                if(color == ColorChannel.red){sB.append("ImageOps.extractRed(");}
+                else if(color == ColorChannel.grn){sB.append("ImageOps.extractGrn(");}
+                else if(color == ColorChannel.blu){sB.append("ImageOps.extractBlu(");}
 
+                sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+            }
+
+        }
+        else if (pExpr == Type.PIXEL) {
+            if (!p && c) {
                 ColorChannel color = unaryExprPostfix.getColor();
                 //red
                 if (color == ColorChannel.red) {
