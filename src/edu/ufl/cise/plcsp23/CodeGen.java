@@ -1,11 +1,8 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
-import edu.ufl.cise.plcsp23.runtime.ImageOps;
-import edu.ufl.cise.plcsp23.runtime.FileURLIO;
 //import java.lang.*;
 //import java.lang.reflect.Parameter;
-
 import static edu.ufl.cise.plcsp23.IToken.Kind;
 import java.util.List;
 
@@ -25,6 +22,7 @@ public class CodeGen implements ASTVisitor {
         sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO; \n");
         sB.append("import edu.ufl.cise.plcsp23.runtime.PixelOps; \n");
         sB.append("import edu.ufl.cise.plcsp23.runtime.ImageOps; \n");
+        sB.append("import java.awt.image.BufferedImage; \n");
         sB.append("import edu.ufl.cise.plcsp23.runtime.FileURLIO; \n");
         sB.append("import java.lang.*; \n");
         sB.append("import java.lang.Math; \n \n");
@@ -100,27 +98,14 @@ public class CodeGen implements ASTVisitor {
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         Type l = declaration.getNameDef().getType();
-
+        //HELP in what order
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
-       /* if (s == "String"){
-            b = true;
-        }*/
 
+        if (s == "String"){b = true;}
         sB.append(s + " ");
-        sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
 
-        if(declaration.getInitializer() != null){
-            Type r = declaration.getInitializer().getType();
-            sB.append(" = ");
-            if(l == Type.STRING && r == Type.INT){
-                sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
-            } else {
-                sB.append(declaration.getInitializer().visit(this,arg));
-            }
-        }
-        
-        if(declaration.getNameDef().getDimension() == null){
+  /*      if(declaration.getNameDef().getDimension() == null){
             //initial-> string
             if(declaration.getInitializer().getType() == Type.STRING){
                 sB.append("FileURLIO.readImage(");
@@ -132,20 +117,37 @@ public class CodeGen implements ASTVisitor {
             }
         } else if (declaration.getNameDef().getDimension() != null) {
             //default image ???
+            //HELP HOW DO I SET DEFAULT?
             if(declaration.getInitializer() == null){
+                sB.append("BufferedImage ");
+                sB.append(sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber) + " = ");
                 sB.append("ImageOps.makeImage(");
-                sB.append(declaration.getNameDef().getDimension().getWidth() + ",");
-                sB.append(declaration.getNameDef().getDimension().getHeight() + ")");
+                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this,arg) + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this,arg) + ")");
             } else if (declaration.getInitializer().getType() == Type.STRING) {
                 sB.append("FileURLIO.readImage(");
-                sB.append(declaration.getInitializer()+ ",");
-                sB.append(declaration.getNameDef().getDimension().getWidth() + ",");
-                sB.append(declaration.getNameDef().getDimension().getHeight() + ")");
+                sB.append(declaration.getInitializer().visit(this,arg)+ ",");
+                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this,arg) + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this,arg) + ")");
             } else if (declaration.getInitializer().getType() == Type.IMAGE) {
                 sB.append("ImageOps.copyAndResize(");
-                sB.append(declaration.getInitializer()+ ",");
-                sB.append(declaration.getNameDef().getDimension().getWidth() + ",");
-                sB.append(declaration.getNameDef().getDimension().getHeight() + ")");
+                sB.append(declaration.getInitializer().visit(this,arg)+ ",");
+                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this,arg) + ",");
+                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this,arg) + ")");
+            }
+        }*/
+
+
+        //HELP WHEN DO WE APPEND THIS
+        sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
+        if(declaration.getInitializer() != null){
+            Type r = declaration.getInitializer().getType();
+            sB.append(" = ");
+            if(l == Type.STRING && r == Type.INT){
+                //String.valueOf(1);
+                sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
+            } else {
+                sB.append(declaration.getInitializer().visit(this,arg));
             }
         }
 
@@ -180,7 +182,7 @@ public class CodeGen implements ASTVisitor {
             if(unaryExprPostfix.getColor() != null){
                 c = true;
             }
-
+            //HELP IS SYNTAX CORRECT?
             //p, no c
             if(p && !c){
                 sB.append("ImageOps.getRGB(");
@@ -189,69 +191,69 @@ public class CodeGen implements ASTVisitor {
                 sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + ")");
             } //p & c
             else if(p && c){
-                /*String color = "";
+
+                ColorChannel color = unaryExprPostfix.getColor();
                 //red
-                if(color = "r"){
+                if(color == ColorChannel.red){
                     sB.append("PixelOps.red(ImageOps.getRGB(");
                     sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
                     sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
                     sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
                 }
                 //green
-                else if(color = "g"){
+                else if(color == ColorChannel.grn){
                     sB.append("PixelOps.grn(ImageOps.getRGB(");
                     sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
                     sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
                     sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
                 }
                 //blue
-                else if(color = "b"){
+                else if(color == ColorChannel.blu){
                     sB.append("PixelOps.blu(ImageOps.getRGB(");
                     sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ",");
                     sB.append(unaryExprPostfix.getPixel().getX().visit(this,arg) + ",");
                     sB.append(unaryExprPostfix.getPixel().getY().visit(this,arg) + "))");
-                }*/
+                }
             }
             //no p c
             else if (!p && c) {
-
-              /*  String color = "";
+                ColorChannel color = unaryExprPostfix.getColor();
                 //red
-                if(color = "r"){
+                if(color == ColorChannel.red){
                     sB.append("ImageOps.extractRed(");
                     sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
                 }
                 //green
-                else if(color = "g"){
+                else if(color == ColorChannel.grn){
                     sB.append("ImageOps.extractGrn(");
                     sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
                 }
                 //blue
-                else if(color = "b"){
+                else if(color == ColorChannel.blu){
                     sB.append("ImageOps.extractBlu(");
                     sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
-                }*/
+                }
             }
         } else if (pExpr == Type.PIXEL) {
             if (!p && c) {
 
-              /*  String color = "";
+                ColorChannel color = unaryExprPostfix.getColor();
                 //red
-                if(color = "r"){
+                if (color == ColorChannel.red) {
                     sB.append("ImageOps.extractRed(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
                 }
                 //green
-                else if(color = "g"){
+                else if (color == ColorChannel.grn) {
                     sB.append("ImageOps.extractGrn(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");
+                    sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
                 }
                 //blue
-                else if(color = "b"){
+                else if (color == ColorChannel.blu) {
                     sB.append("ImageOps.extractBlu(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this,arg) + ")");*/
+                    sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
                 }
-
+            }
         }
 
         return sB.toString();
@@ -319,15 +321,11 @@ public class CodeGen implements ASTVisitor {
             case MOD ->opStore = "%";
             //**
             case EXP ->opStore = "(int)Math.pow";
-
         }
-        //IMAGE
-        Type expr0 = binaryExpr.getLeft().getType();
-        Type expr1 = binaryExpr.getRight().getType();
-
         if(opStore == "(int)Math.pow"){
             sB.append(opStore + "(" + binaryExpr.getLeft().visit(this,arg) +"," + binaryExpr.getRight().visit(this,arg) + ")");
             sB.append(")");
+
         }
         // if op < > <= >= == && || //itok
         else if (opStore == "||" || opStore == "&&"){
@@ -351,7 +349,12 @@ public class CodeGen implements ASTVisitor {
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(" ? 1 : 0");
             sB.append(")");
-        } else if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
+        }
+        //HELP is this implemented correctly ?
+        /*else if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
+            //IMAGE
+            Type expr0 = binaryExpr.getLeft().getType();
+            Type expr1 = binaryExpr.getRight().getType();
             if(expr0 == Type.IMAGE){
                 if(expr1 == Type.IMAGE){
                     sB.append("ImageOps.binaryImageImageOp(" + opStore + ",");
@@ -368,13 +371,12 @@ public class CodeGen implements ASTVisitor {
                 sB.append(binaryExpr.getRight().visit(this,arg) + ")");
             }
             sB.append(")");
-        } else {
+        }*/else {
             sB.append(binaryExpr.getLeft().visit(this,arg));
             sB.append(" " + opStore + " "); //something that returns an string //switch statement
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(")");
         }
-
 
         return sB.toString();
     }
@@ -391,14 +393,16 @@ public class CodeGen implements ASTVisitor {
             case BANG -> {
                 if (unaryType == Type.INT) {
                     sB.append("((");
-                    sB.append(unaryExpr.getE().visit(this,arg));
+                    unaryExpr.getE().visit(this,arg);
                     sB.append(" != 0) ? "); // only case
                     sB.append(" 1 : 0)");
                 }
-            }
+            } //HELP what's the minus do? is it implemented correctly?
             case MINUS->{
                 if(unaryType == Type.INT) {
-                    sB.append(unaryExpr.getE().visit(this,arg));
+                    sB.append("-");
+                    //visiting should append it
+                    unaryExpr.getE().visit(this,arg);
                 }
             }
         }
@@ -475,8 +479,6 @@ public class CodeGen implements ASTVisitor {
         if(lValue.getPixelSelector() == null && lValue.getColor() == null) {
             sB.append(lValue.getIdent().getName()+"_"+lValue.decNumber);
         }
-
-
         return sB.toString();
     }
 
@@ -486,21 +488,21 @@ public class CodeGen implements ASTVisitor {
         Type l = statementAssign.getLv().getIdent().getDef().getType();
         Type r = statementAssign.getE().getType();
         System.out.println(  " " + r);
-
+        //HELP what do we do here and in LVALUE
         sB.append(statementAssign.getLv().visit(this,arg));
         sB.append(" = ");
         if(l == Type.STRING && r == Type.INT){
             //String.valueOf(1);
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
         } else {
-        sB.append(statementAssign.getE().visit(this,arg));
+            sB.append(statementAssign.getE().visit(this,arg));
         }
         return sB.toString();
     }
     @Override
     public Object visitWriteStatement(WriteStatement statementWrite, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        // HELP what does it mean to import???
+        // HELP is this correct
         //sB.append("import edu.ufl.cise.plcsp23.runtime.ConsoleIO;");
         if(statementWrite.getE().getType() == Type.PIXEL){
             sB.append("ConsoleIO.writePixel(");
@@ -533,12 +535,13 @@ public class CodeGen implements ASTVisitor {
         sB.append(" return ");
         Type t = p.getType();
         Type ty = returnStatement.getE().getType();
-
+        //HELP WHAT DO WE DO HERE
         if(t == Type.STRING && ty == Type.INT){
+            //String.valueOf(1);
             sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
         }
         else {
-        sB.append(returnStatement.getE().visit(this, arg));
+            sB.append(returnStatement.getE().visit(this, arg));
         }
         return sB.toString();
     }

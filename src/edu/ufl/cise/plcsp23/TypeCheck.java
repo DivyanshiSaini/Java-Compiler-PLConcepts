@@ -210,13 +210,16 @@ public class TypeCheck implements ASTVisitor {
         boolean p = false;
         boolean c = false;
 
-        if(unaryExprPostfix.getPixel().getX() != null){
-            unaryExprPostfix.getPixel().getX().visit(this,arg);
-            p = true;
-        }
-        if(unaryExprPostfix.getPixel().getY() != null){
-            unaryExprPostfix.getPixel().getY().visit(this,arg);
-            //c = true;
+        //added4/24
+        if(unaryExprPostfix.getPixel()!= null) {
+            if (unaryExprPostfix.getPixel().getX() != null) {
+                unaryExprPostfix.getPixel().getX().visit(this, arg);
+                p = true;
+            }
+            if (unaryExprPostfix.getPixel().getY() != null) {
+                unaryExprPostfix.getPixel().getY().visit(this, arg);
+                //c = true;
+            }
         }
         if(unaryExprPostfix.getColor() != null){
              c = true;
