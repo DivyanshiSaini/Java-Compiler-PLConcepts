@@ -189,11 +189,10 @@ public class CodeGen implements ASTVisitor {
         Type pExpr = unaryExprPostfix.getPrimary().getType();
         boolean p = false;
         boolean c = false;
+        if(unaryExprPostfix.getPixel() != null){p = true;}
+        if(unaryExprPostfix.getColor() != null){c = true;}
 
         if(pExpr == Type.IMAGE){
-            if(unaryExprPostfix.getPixel() != null){p = true;}
-            if(unaryExprPostfix.getColor() != null){c = true;}
-
             //HELP IS SYNTAX CORRECT?
             //p, no c
             if(p && !c){
@@ -228,21 +227,11 @@ public class CodeGen implements ASTVisitor {
         else if (pExpr == Type.PIXEL) {
             if (!p && c) {
                 ColorChannel color = unaryExprPostfix.getColor();
-                //red
-                if (color == ColorChannel.red) {
-                    sB.append("ImageOps.extractRed(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
-                }
-                //green
-                else if (color == ColorChannel.grn) {
-                    sB.append("ImageOps.extractGrn(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
-                }
-                //blue
-                else if (color == ColorChannel.blu) {
-                    sB.append("ImageOps.extractBlu(");
-                    sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
-                }
+                //red, green,blue
+                if (color == ColorChannel.red) {sB.append("PixelOps.red(");}
+                else if (color == ColorChannel.grn) {sB.append("PixelOps.grn(");}
+                else if (color == ColorChannel.blu) {sB.append("PixelOps.blu(");}
+                sB.append(unaryExprPostfix.getPrimary().visit(this, arg) + ")");
             }
         }
 
