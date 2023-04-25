@@ -1,6 +1,7 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
+import edu.ufl.cise.plcsp23.runtime.PixelOps;
 //import java.lang.*;
 //import java.lang.reflect.Parameter;
 import static edu.ufl.cise.plcsp23.IToken.Kind;
@@ -37,6 +38,8 @@ public class CodeGen implements ASTVisitor {
         program.getType();
 
         String s = program.getType().name().toLowerCase().toString().replaceAll("string", "String");
+        s = s.replaceAll("image","BufferedImage");
+        s = s.replaceAll("pixel","int");
         if (s == "String"){
             b = true;
         }
@@ -49,6 +52,8 @@ public class CodeGen implements ASTVisitor {
         for (int i = 0; i < pL.size(); i++) {
             pL.get(i).visit(this, arg);
             String si = pL.get(i).getType().toString().toLowerCase().replaceAll("string", "String");
+            si = si.replaceAll("image","BufferedImage");
+            si = si.replaceAll("pixel","int");
             if (s == "String"){
                 b = true;
             }
@@ -101,42 +106,12 @@ public class CodeGen implements ASTVisitor {
         //HELP in what order
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
+        //IMAGE to what?
+        s = s.replaceAll("image","BufferedImage");
+        s = s.replaceAll("pixel","int");
 
         if (s == "String"){b = true;}
         sB.append(s + " ");
-
-  /*      if(declaration.getNameDef().getDimension() == null){
-            //initial-> string
-            if(declaration.getInitializer().getType() == Type.STRING){
-                sB.append("FileURLIO.readImage(");
-                sB.append(declaration.getInitializer().visit(this,arg) + ")");
-            }
-            if(declaration.getInitializer().getType() == Type.IMAGE){
-                sB.append("ImageOps.cloneImage(");
-                sB.append(declaration.getInitializer().visit(this,arg) + ")");
-            }
-        } else if (declaration.getNameDef().getDimension() != null) {
-            //default image ???
-            //HELP HOW DO I SET DEFAULT?
-            if(declaration.getInitializer() == null){
-                sB.append("BufferedImage ");
-                sB.append(sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber) + " = ");
-                sB.append("ImageOps.makeImage(");
-                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this,arg) + ",");
-                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this,arg) + ")");
-            } else if (declaration.getInitializer().getType() == Type.STRING) {
-                sB.append("FileURLIO.readImage(");
-                sB.append(declaration.getInitializer().visit(this,arg)+ ",");
-                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this,arg) + ",");
-                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this,arg) + ")");
-            } else if (declaration.getInitializer().getType() == Type.IMAGE) {
-                sB.append("ImageOps.copyAndResize(");
-                sB.append(declaration.getInitializer().visit(this,arg)+ ",");
-                sB.append(declaration.getNameDef().getDimension().getWidth().visit(this,arg) + ",");
-                sB.append(declaration.getNameDef().getDimension().getHeight().visit(this,arg) + ")");
-            }
-        }*/
-
 
         //HELP WHEN DO WE APPEND THIS
         sB.append(declaration.getNameDef().getIdent().getName()+"_"+declaration.getNameDef().decNumber);
@@ -146,6 +121,54 @@ public class CodeGen implements ASTVisitor {
             if(l == Type.STRING && r == Type.INT){
                 //String.valueOf(1);
                 sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
+            }
+            //here p6
+            else if (l == Type.IMAGE) {
+                if(declaration.getNameDef().getDimension() == null){
+                    //initial-> string
+                   // sB.append("BufferedImage ");
+                    //sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
+                    if(declaration.getInitializer().getType() == Type.STRING){
+                        sB.append("FileURLIO.readImage(");
+                        sB.append(declaration.getInitializer().visit(this,arg) + ")");
+                    }
+                    if(declaration.getInitializer().getType() == Type.IMAGE){
+                        sB.append("ImageOps.cloneImage(");
+                        sB.append(declaration.getInitializer().visit(this,arg) + ")");
+                    }
+                } else if (declaration.getNameDef().getDimension() != null) {
+                    //default image ???
+                    if(declaration.getInitializer() == null){
+                       // sB.append("BufferedImage ");
+                       // sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
+                        sB.append("ImageOps.makeImage(");
+                        sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+                    }
+                    //HELP HOW DO I SET DEFAULT?
+                    else if (declaration.getInitializer().getType() == Type.STRING) {
+                       // sB.append("BufferedImage ");
+                     //   sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
+                        sB.append("FileURLIO.readImage(");
+                        sB.append(declaration.getInitializer().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+                    } else if (declaration.getInitializer().getType() == Type.IMAGE) {
+                       // sB.append("BufferedImage ");
+                       // sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
+                        sB.append("ImageOps.copyAndResize(");
+                        sB.append(declaration.getInitializer().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
+                        sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+                    }
+                }
+            } else if (l == Type.INT && r ==Type.PIXEL) {
+                //HELP cg11c works why?
+                /*sB.append("PixelOps.pack(");
+               *//* sB.append(declaration.getRedExpr().visit(this,arg) + ",");
+                sB.append(expandedPixelExpr.getGrnExpr().visit(this,arg) + ",");
+                sB.append(expandedPixelExpr.getBluExpr().visit(this,arg));*//*
+                sB.append(")");*/
             } else {
                 sB.append(declaration.getInitializer().visit(this,arg));
             }
@@ -487,7 +510,7 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         Type l = statementAssign.getLv().getIdent().getDef().getType();
         Type r = statementAssign.getE().getType();
-        System.out.println(  " " + r);
+        //System.out.println(  " " + r);
         //HELP what do we do here and in LVALUE
         sB.append(statementAssign.getLv().visit(this,arg));
         sB.append(" = ");
@@ -539,8 +562,9 @@ public class CodeGen implements ASTVisitor {
         if(t == Type.STRING && ty == Type.INT){
             //String.valueOf(1);
             sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
-        }
-        else {
+        } /*else if (p.getIdent().getName().toLowerCase() ==  && ty == Type.PIXEL) {
+            sB.append("(BufferedImage)" + returnStatement.getE().visit(this,arg) + ")");
+        } */else {
             sB.append(returnStatement.getE().visit(this, arg));
         }
         return sB.toString();
