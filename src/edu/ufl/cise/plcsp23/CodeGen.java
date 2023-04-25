@@ -138,7 +138,7 @@ public class CodeGen implements ASTVisitor {
 
                         sB.append("ImageOps.makeImage(");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
-                        sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+                        sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + "); \n");
 
                     //HELP HOW DO I SET DEFAULT?
                     if (declaration.getInitializer().getType() == Type.STRING) {
@@ -559,8 +559,6 @@ public class CodeGen implements ASTVisitor {
                 sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n\t\t");
                 sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg));
-                /*sB.append(statementAssign.getLv().getPixelSelector().getX().visit(this,arg)+ ",");
-                sB.append(statementAssign.getLv().getPixelSelector().getY().visit(this,arg) + ", \n\t\t");*/
                 sB.append("," + temp + " ImageOps.getRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().getX().visit(this,arg) + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().getY().visit(this,arg) + ")," + "255));");
