@@ -103,10 +103,10 @@ public class CodeGen implements ASTVisitor {
     public Object visitDeclaration(Declaration declaration, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
         Type l = declaration.getNameDef().getType();
-        //HELP in what order
+
         declaration.getNameDef().visit(this,arg);
         String s = declaration.getNameDef().getType().name().toLowerCase().replaceAll("string", "String");
-        //IMAGE to what?
+
         s = s.replaceAll("image","BufferedImage");
         s = s.replaceAll("pixel","int");
 
@@ -124,55 +124,43 @@ public class CodeGen implements ASTVisitor {
             }
             //here p6
             else if (l == Type.IMAGE) {
-                if(declaration.getNameDef().getDimension() == null){
-                    //initial-> string
-                   // sB.append("BufferedImage ");
-                    //sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
-                    if(declaration.getInitializer().getType() == Type.STRING){
+                if (declaration.getNameDef().getDimension() == null) {
+                    if (r == Type.STRING) {
                         sB.append("FileURLIO.readImage(");
-                        sB.append(declaration.getInitializer().visit(this,arg) + ")");
+                        sB.append(declaration.getInitializer().visit(this, arg) + ")");
                     }
-                    if(declaration.getInitializer().getType() == Type.IMAGE){
+                    if (declaration.getInitializer().getType() == Type.IMAGE) {
                         sB.append("ImageOps.cloneImage(");
-                        sB.append(declaration.getInitializer().visit(this,arg) + ")");
+                        sB.append(declaration.getInitializer().visit(this, arg) + ")");
                     }
                 } else if (declaration.getNameDef().getDimension() != null) {
                     //default image ???
-                    if(declaration.getInitializer() == null){
-                       // sB.append("BufferedImage ");
-                       // sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
+
                         sB.append("ImageOps.makeImage(");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
-                    }
+
                     //HELP HOW DO I SET DEFAULT?
-                    else if (declaration.getInitializer().getType() == Type.STRING) {
-                       // sB.append("BufferedImage ");
-                     //   sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
+                    if (declaration.getInitializer().getType() == Type.STRING) {
                         sB.append("FileURLIO.readImage(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
                     } else if (declaration.getInitializer().getType() == Type.IMAGE) {
-                       // sB.append("BufferedImage ");
-                       // sB.append(declaration.getNameDef().getIdent().getName() + "_" + declaration.getNameDef().decNumber + " = ");
                         sB.append("ImageOps.copyAndResize(");
                         sB.append(declaration.getInitializer().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
                     }
                 }
-            } else if (l == Type.INT && r ==Type.PIXEL) {
-                //HELP cg11c works why?
-                /*sB.append("PixelOps.pack(");
-               *//* sB.append(declaration.getRedExpr().visit(this,arg) + ",");
-                sB.append(expandedPixelExpr.getGrnExpr().visit(this,arg) + ",");
-                sB.append(expandedPixelExpr.getBluExpr().visit(this,arg));*//*
-                sB.append(")");*/
             } else {
-                sB.append(declaration.getInitializer().visit(this,arg));
+                    sB.append(declaration.getInitializer().visit(this,arg));
+
+
             }
         }
+
+
 
 
         return sB.toString();
@@ -287,7 +275,21 @@ public class CodeGen implements ASTVisitor {
     }
     @Override
     public Object visitPredeclaredVarExpr(PredeclaredVarExpr predeclaredVarExpr, Object arg) throws PLCException {
-        return null;
+        StringBuilder sB = new StringBuilder();
+        if(predeclaredVarExpr.getKind() == Kind.RES_x){
+            sB.append("x");
+
+        } else if(predeclaredVarExpr.getKind() == Kind.RES_y){
+            sB.append("y");
+
+        }else if(predeclaredVarExpr.getKind() == Kind.RES_a){
+            sB.append("a");
+
+        }else if(predeclaredVarExpr.getKind() == Kind.RES_r){
+            sB.append("r");
+
+        }
+        return sB.toString();
     }
 
     @Override
@@ -360,11 +362,6 @@ public class CodeGen implements ASTVisitor {
             sB.append("(" + binaryExpr.getRight().visit(this,arg) + ")");
             sB.append(" != 0 ? "); // only case
             sB.append(" 1 : 0)");
-           /* sB.append(binaryExpr.getLeft().visit(this,arg));
-            sB.append(" : ");
-            sB.append(binaryExpr.getRight().visit(this,arg));
-            sB.append(") ");*/
-
         }
         else if(opStore == ">" || opStore == "<" || opStore == ">="|| opStore == "<=" || opStore == "=="){
             sB.append(binaryExpr.getLeft().visit(this,arg));
@@ -372,33 +369,35 @@ public class CodeGen implements ASTVisitor {
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(" ? 1 : 0");
             sB.append(")");
-        }
-        //HELP is this implemented correctly ?
-        /*else if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
-            //IMAGE
-            Type expr0 = binaryExpr.getLeft().getType();
-            Type expr1 = binaryExpr.getRight().getType();
-            if(expr0 == Type.IMAGE){
-                if(expr1 == Type.IMAGE){
-                    sB.append("ImageOps.binaryImageImageOp(" + opStore + ",");
-                    sB.append(binaryExpr.getLeft().visit(this,arg) + ",");
-                    sB.append(binaryExpr.getRight().visit(this,arg) + ")");
-                } else if (expr1 == Type.INT){
-                    sB.append("ImageOps.binaryImageScalarOp(" + opStore + ",");
-                    sB.append(binaryExpr.getLeft().visit(this,arg) + ",");
-                    sB.append(binaryExpr.getRight().visit(this,arg) + ")");
-                }
-            } else if (expr0 == Type.PIXEL && expr1 == Type.PIXEL){
-                sB.append("ImageOps.binaryPackedPixelPixelOp(" + opStore + ",");
-                sB.append(binaryExpr.getLeft().visit(this,arg) + ",");
-                sB.append(binaryExpr.getRight().visit(this,arg) + ")");
-            }
-            sB.append(")");
-        }*/else {
+        } else {
             sB.append(binaryExpr.getLeft().visit(this,arg));
             sB.append(" " + opStore + " "); //something that returns an string //switch statement
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(")");
+        }
+
+        Type expr0 = binaryExpr.getLeft().getType();
+        Type expr1 = binaryExpr.getRight().getType();
+        if(expr0 == Type.IMAGE){
+            if(expr1 == Type.IMAGE){
+                if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
+                    sB.append("ImageOps.binaryImageImageOp(" + opStore + ",");
+                    sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
+                    sB.append(binaryExpr.getRight().visit(this, arg) + ")");
+                }
+            } else if (expr1 == Type.INT){
+                if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
+                    sB.append("ImageOps.binaryImageScalarOp(" + opStore + ",");
+                    sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
+                    sB.append(binaryExpr.getRight().visit(this, arg) + ")");
+                }
+            }
+        }else if (expr0 == Type.PIXEL && expr1 == Type.PIXEL){
+            if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
+                sB.append("ImageOps.binaryPackedPixelPixelOp(" + opStore + ",");
+                sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
+                sB.append(binaryExpr.getRight().visit(this, arg) + ")");
+            }
         }
 
         return sB.toString();
@@ -511,13 +510,64 @@ public class CodeGen implements ASTVisitor {
         Type l = statementAssign.getLv().getIdent().getDef().getType();
         Type r = statementAssign.getE().getType();
         //System.out.println(  " " + r);
-        //HELP what do we do here and in LVALUE
+
         sB.append(statementAssign.getLv().visit(this,arg));
-        sB.append(" = ");
-        if(l == Type.STRING && r == Type.INT){
-            //String.valueOf(1);
+        //sB.append(" = ");
+        if (l == Type.STRING && r == Type.INT){
+            sB.append(" = ");
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
+        }
+        else if (l == Type.PIXEL) {
+            //HELP WHAT
+        }
+        else if (l == Type.IMAGE) {
+            boolean p = false;
+            boolean c = false;
+            if (statementAssign.getLv().getPixelSelector() != null){ p = true;}
+            if (statementAssign.getLv().getColor() != null){ c = true;}
+
+           //no p and no c
+            if(!p && !c){
+                //HELP WHAT"S happenign here
+                if(r == Type.STRING){
+                    //HELP where are we reading it in from?
+                    sB.append("ImageOps.copyInto(FileURLIO.readImage(" + statementAssign.getE());
+                    sB.append("), " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ")");
+                } else if ( r == Type.IMAGE) {
+                    sB.append("ImageOps.copyInto(FileURLIO.readImage(" + statementAssign.getE());
+                    sB.append("), " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ")");
+                } else if (r == Type.PIXEL) {
+
+                }
+            } else if (p && !c) {
+
+               sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t") ;
+               sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n \t\t");
+               sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
+                sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
+               statementAssign.getE().visit(this,arg); //visit UEPF
+               sB.append("); \n } \n }");
+
+            } else if (p && c) {
+                ColorChannel color = statementAssign.getLv().getColor();
+                String temp = "";
+                if(color == ColorChannel.red){temp = "PixelOps.setRed(";}
+                if(color == ColorChannel.grn){temp = "PixelOps.setGrn(";}
+                if(color == ColorChannel.blu){temp = "PixelOps.setBlu(";}
+
+                sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t") ;
+                sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n\t\t");
+                sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
+                sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg));
+                /*sB.append(statementAssign.getLv().getPixelSelector().getX().visit(this,arg)+ ",");
+                sB.append(statementAssign.getLv().getPixelSelector().getY().visit(this,arg) + ", \n\t\t");*/
+                sB.append("," + temp + " ImageOps.getRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
+                sB.append(statementAssign.getLv().getPixelSelector().getX().visit(this,arg) + ",");
+                sB.append(statementAssign.getLv().getPixelSelector().getY().visit(this,arg) + ")," + "255));");
+                sB.append("\n} \n}");
+            }
         } else {
+            sB.append(" = ");
             sB.append(statementAssign.getE().visit(this,arg));
         }
         return sB.toString();
