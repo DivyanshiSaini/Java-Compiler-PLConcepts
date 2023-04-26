@@ -339,18 +339,20 @@ public class CodeGen implements ASTVisitor {
             sB.append(")");
         }
          else if ((opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%" ) &&  (binaryExpr.getLeft().getType() == Type.IMAGE ||binaryExpr.getLeft().getType() == Type.PIXEL)) {
-            if(expr0 == Type.IMAGE){
-                if (expr1 == Type.IMAGE) {sB.append("ImageOps.binaryImageImageOp(" +"ImageOps.OP." + op1 + ",");}
-                else if (expr1 == Type.INT) { sB.append("ImageOps.binaryImageScalarOp(" +"ImageOps.OP." + op1 + ",");}
-
-                sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
-                sB.append(binaryExpr.getRight().visit(this, arg) + "))");
+            if(expr0 == Type.IMAGE && expr1 == Type.IMAGE) {
+                sB.append("ImageOps.binaryImageImageOp(" +"ImageOps.OP." + op1 + ",");
+            }
+            else if (expr0 == Type.IMAGE && expr1 == Type.INT ) {
+                sB.append("ImageOps.binaryImageScalarOp(" +"ImageOps.OP." + op1 + ",");
             }
             else if (expr0 == Type.PIXEL && expr1 == Type.PIXEL){
                 sB.append("ImageOps.binaryPackedPixelPixelOp(" + "ImageOps.OP." + op1 + ",");
-                sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
-                sB.append(binaryExpr.getRight().visit(this, arg) + "))");
             }
+            else if (expr0 == Type.PIXEL && expr1 == Type.INT){
+                sB.append("ImageOps.binaryPackedPixelIntOp(" + "ImageOps.OP." + op1 + ",");
+            }
+            sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
+            sB.append(binaryExpr.getRight().visit(this, arg) + "))");
         }
          else {
             sB.append(binaryExpr.getLeft().visit(this,arg));
@@ -475,7 +477,7 @@ public class CodeGen implements ASTVisitor {
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
         }
         else if (l == Type.PIXEL) {
-            ;
+
         }
         else if (l == Type.IMAGE) {
             boolean p = false;
