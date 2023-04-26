@@ -476,8 +476,9 @@ public class CodeGen implements ASTVisitor {
             sB.append(statementAssign.getLv().visit(this,arg));
             sB.append(" = ");
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
-        }
-        else if (l == Type.PIXEL) {
+        }else if (l == Type.PIXEL) {
+            sB.append(statementAssign.getLv().visit(this,arg));
+            sB.append(" = ");
             sB.append(statementAssign.getE().visit(this,arg));
         }
         else if (l == Type.IMAGE) {
