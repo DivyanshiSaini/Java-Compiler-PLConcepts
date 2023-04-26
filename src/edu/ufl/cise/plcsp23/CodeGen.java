@@ -470,9 +470,10 @@ public class CodeGen implements ASTVisitor {
         Type l = statementAssign.getLv().getIdent().getDef().getType();
         Type r = statementAssign.getE().getType();
 
-        sB.append(statementAssign.getLv().visit(this,arg));
+
         //sB.append(" = ");
         if (l == Type.STRING && r == Type.INT){
+            sB.append(statementAssign.getLv().visit(this,arg));
             sB.append(" = ");
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
         }
@@ -490,11 +491,11 @@ public class CodeGen implements ASTVisitor {
                 //HELP WHAT"S happenign here
                 if(r == Type.STRING){
                     //HELP where are we reading it in from?
-                    sB.append(" = ");
+                    //sB.append(" = ");
                     sB.append("ImageOps.copyInto(FileURLIO.readImage(" + statementAssign.getE().visit(this,arg));
                     sB.append("), " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + "))");
                 } else if ( r == Type.IMAGE) {
-                    sB.append(" = ");
+                    //sB.append(" = ");
                     sB.append("ImageOps.copyInto(" + statementAssign.getE().visit(this,arg));
                     sB.append(", " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ")");
                 } else if (r == Type.PIXEL) {
@@ -528,6 +529,7 @@ public class CodeGen implements ASTVisitor {
                 sB.append("\n} \n}");
             }
         } else {
+            sB.append(statementAssign.getLv().visit(this,arg));
             sB.append(" = ");
             sB.append(statementAssign.getE().visit(this,arg));
         }
