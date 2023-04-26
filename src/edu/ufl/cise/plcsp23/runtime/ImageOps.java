@@ -15,8 +15,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
-
-//import edu.ufl.cise.plcsp23.PLCRuntimeException;
+import edu.ufl.cise.plcsp23.runtime.PLCRuntimeException;
 
 
 /**

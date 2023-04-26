@@ -121,6 +121,8 @@ public class CodeGen implements ASTVisitor {
             sB.append(" = ");
             if(l == Type.STRING && r == Type.INT){
                 sB.append("String.valueOf(" + declaration.getInitializer().visit(this,arg) + ")");
+            } else if(l == Type.STRING && r == Type.PIXEL){
+                sB.append("PixelOps.packedToString(" + declaration.getInitializer().visit(this,arg) + ")");
             }
             else if (l == Type.IMAGE) {
                 //image with no dimension
@@ -476,7 +478,13 @@ public class CodeGen implements ASTVisitor {
             sB.append(statementAssign.getLv().visit(this,arg));
             sB.append(" = ");
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
-        }else if (l == Type.PIXEL) {
+        } else if(l == Type.STRING && r == Type.PIXEL){
+            sB.append(statementAssign.getLv().visit(this,arg));
+            sB.append(" = ");
+            sB.append("PixelOps.packedToString(" + statementAssign.getE().visit(this,arg) + ")");
+        }
+
+        else if (l == Type.PIXEL) {
             sB.append(statementAssign.getLv().visit(this,arg));
             sB.append(" = ");
             sB.append(statementAssign.getE().visit(this,arg));
@@ -576,6 +584,8 @@ public class CodeGen implements ASTVisitor {
             sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
         } else if(t == Type.STRING && ty == Type.PIXEL){
             sB.append("PixelOps.packedToString(" + returnStatement.getE().visit(this,arg) + ")");
+        } else if(t == Type.STRING && ty == Type.IMAGE){
+            sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
         } else {
             sB.append(returnStatement.getE().visit(this, arg));
         }
