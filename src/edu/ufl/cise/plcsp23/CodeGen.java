@@ -510,7 +510,7 @@ public class CodeGen implements ASTVisitor {
                 sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
                 sB.append(statementAssign.getE().visit(this,arg)); //visit UEPF
-                sB.append("); \n } \n }");
+                sB.append("); \n\t\t } \t\t\n }");
 
             } else if (p && c) {
                 ColorChannel color = statementAssign.getLv().getColor();
@@ -573,11 +573,10 @@ public class CodeGen implements ASTVisitor {
         Type ty = returnStatement.getE().getType();
         //HELP WHAT DO WE DO HERE
         if(t == Type.STRING && ty == Type.INT){
-            //String.valueOf(1);
             sB.append("String.valueOf(" + returnStatement.getE().visit(this,arg) + ")");
-        } /*else if (p.getIdent().getName().toLowerCase() ==  && ty == Type.PIXEL) {
-            sB.append("(BufferedImage)" + returnStatement.getE().visit(this,arg) + ")");
-        } */else {
+        } else if(t == Type.STRING && ty == Type.PIXEL){
+            sB.append("PixelOps.packedToString(" + returnStatement.getE().visit(this,arg) + ")");
+        } else {
             sB.append(returnStatement.getE().visit(this, arg));
         }
         return sB.toString();
