@@ -340,7 +340,7 @@ public class CodeGen implements ASTVisitor {
             sB.append(" ? 1 : 0");
             sB.append(")");
         }
-         else if ((opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%" ) &&  (binaryExpr.getLeft().getType() == Type.IMAGE ||binaryExpr.getLeft().getType() == Type.PIXEL)) {
+        else if ((opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%" ) &&  (expr0 == Type.IMAGE ||expr0 == Type.PIXEL)) {
             if(expr0 == Type.IMAGE && expr1 == Type.IMAGE) {
                 sB.append("ImageOps.binaryImageImageOp(" +"ImageOps.OP." + op1 + ",");
             }
@@ -356,7 +356,7 @@ public class CodeGen implements ASTVisitor {
             sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
             sB.append(binaryExpr.getRight().visit(this, arg) + "))");
         }
-         else {
+        else {
             sB.append(binaryExpr.getLeft().visit(this,arg));
             sB.append(" " + opStore + " "); //something that returns an string //switch statement
             sB.append(binaryExpr.getRight().visit(this,arg));
