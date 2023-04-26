@@ -1,6 +1,7 @@
 package edu.ufl.cise.plcsp23;
 
 import edu.ufl.cise.plcsp23.ast.*;
+import edu.ufl.cise.plcsp23.runtime.ImageOps;
 import edu.ufl.cise.plcsp23.runtime.PixelOps;
 //import java.lang.*;
 //import java.lang.reflect.Parameter;
@@ -246,16 +247,12 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         if(predeclaredVarExpr.getKind() == Kind.RES_x){
             sB.append("x");
-
         } else if(predeclaredVarExpr.getKind() == Kind.RES_y){
             sB.append("y");
-
         }else if(predeclaredVarExpr.getKind() == Kind.RES_a){
             sB.append("a");
-
         }else if(predeclaredVarExpr.getKind() == Kind.RES_r){
             sB.append("r");
-
         }
         return sB.toString();
     }
@@ -282,8 +279,12 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         sB.append("(");
 
+        Type expr0 = binaryExpr.getLeft().getType();
+        Type expr1 = binaryExpr.getRight().getType();
+
         Kind op = binaryExpr.getOp();
         String opStore = "";
+        ImageOps.OP op1 = null;
         switch(op) {
             //|,&
             case BITOR ->opStore = "|";
@@ -303,15 +304,15 @@ public class CodeGen implements ASTVisitor {
             // ==
             case EQ ->opStore = "==";
             // =
-            case PLUS ->opStore = "+";
+            case PLUS ->{opStore = "+"; op1 = ImageOps.OP.PLUS;}
             // =
-            case MINUS ->opStore = "-";
+            case MINUS ->{opStore = "-"; op1 = ImageOps.OP.MINUS;}
             // =
-            case TIMES ->opStore = "*";
+            case TIMES ->{opStore = "*"; op1 = ImageOps.OP.TIMES;}
             // =
-            case DIV ->opStore = "/";
+            case DIV ->{opStore = "/";op1 = ImageOps.OP.DIV;}
             // =
-            case MOD ->opStore = "%";
+            case MOD ->{opStore = "%";op1 = ImageOps.OP.MOD;}
             //**
             case EXP ->opStore = "(int)Math.pow";
         }
@@ -323,7 +324,6 @@ public class CodeGen implements ASTVisitor {
         // if op < > <= >= == && || //itok
         else if (opStore == "||" || opStore == "&&"){
             //convert to bool then convert to int
-
             sB.append("(" + binaryExpr.getLeft().visit(this,arg) + ")");
             sB.append(" != 0 ");
             sB.append(" " + opStore + " ");
@@ -337,35 +337,26 @@ public class CodeGen implements ASTVisitor {
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(" ? 1 : 0");
             sB.append(")");
-        } else {
+        }
+         else if ((opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%" ) &&  (binaryExpr.getLeft().getType() == Type.IMAGE ||binaryExpr.getLeft().getType() == Type.PIXEL)) {
+            if(expr0 == Type.IMAGE){
+                if (expr1 == Type.IMAGE) {sB.append("ImageOps.binaryImageImageOp(" +"ImageOps.OP." + op1 + ",");}
+                else if (expr1 == Type.INT) { sB.append("ImageOps.binaryImageScalarOp(" +"ImageOps.OP." + op1 + ",");}
+
+                sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
+                sB.append(binaryExpr.getRight().visit(this, arg) + "))");
+            }
+            else if (expr0 == Type.PIXEL && expr1 == Type.PIXEL){
+                sB.append("ImageOps.binaryPackedPixelPixelOp(" + "ImageOps.OP." + op1 + ",");
+                sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
+                sB.append(binaryExpr.getRight().visit(this, arg) + "))");
+            }
+        }
+         else {
             sB.append(binaryExpr.getLeft().visit(this,arg));
             sB.append(" " + opStore + " "); //something that returns an string //switch statement
             sB.append(binaryExpr.getRight().visit(this,arg));
             sB.append(")");
-        }
-
-        Type expr0 = binaryExpr.getLeft().getType();
-        Type expr1 = binaryExpr.getRight().getType();
-        if(expr0 == Type.IMAGE){
-            if(expr1 == Type.IMAGE){
-                if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
-                    sB.append("ImageOps.binaryImageImageOp(" + opStore + ",");
-                    sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
-                    sB.append(binaryExpr.getRight().visit(this, arg) + ")");
-                }
-            } else if (expr1 == Type.INT){
-                if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
-                    sB.append("ImageOps.binaryImageScalarOp(" + opStore + ",");
-                    sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
-                    sB.append(binaryExpr.getRight().visit(this, arg) + ")");
-                }
-            }
-        }else if (expr0 == Type.PIXEL && expr1 == Type.PIXEL){
-            if (opStore == "+" || opStore == "-" ||opStore == "*" ||opStore == "/" ||opStore == "%") {
-                sB.append("ImageOps.binaryPackedPixelPixelOp(" + opStore + ",");
-                sB.append(binaryExpr.getLeft().visit(this, arg) + ",");
-                sB.append(binaryExpr.getRight().visit(this, arg) + ")");
-            }
         }
 
         return sB.toString();
@@ -384,13 +375,13 @@ public class CodeGen implements ASTVisitor {
                 if (unaryType == Type.INT) {
                     sB.append("((");
                     unaryExpr.getE().visit(this,arg);
-                    sB.append(" != 0) ? "); // only case
+                    sB.append(" == 0) ? "); // only case
                     sB.append(" 1 : 0)");
                 }
             } //HELP what's the minus do? is it implemented correctly?
             case MINUS->{
                 if(unaryType == Type.INT) {
-                    sB.append("-");
+                    sB.append("0 -");
                     //visiting should append it
                     unaryExpr.getE().visit(this,arg);
                 }
@@ -436,7 +427,6 @@ public class CodeGen implements ASTVisitor {
     @Override
     public Object visitPixelSelector(PixelSelector pixelSelector, Object arg) throws PLCException {
         StringBuilder sB = new StringBuilder();
-        //HELP should I check if type is INT?
         sB.append(pixelSelector.getX().visit(this,arg) + ",");
         sB.append(pixelSelector.getY().visit(this,arg));
         return sB.toString();
@@ -477,7 +467,6 @@ public class CodeGen implements ASTVisitor {
         StringBuilder sB = new StringBuilder();
         Type l = statementAssign.getLv().getIdent().getDef().getType();
         Type r = statementAssign.getE().getType();
-        //System.out.println(  " " + r);
 
         sB.append(statementAssign.getLv().visit(this,arg));
         //sB.append(" = ");
@@ -486,7 +475,7 @@ public class CodeGen implements ASTVisitor {
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
         }
         else if (l == Type.PIXEL) {
-            //HELP WHAT
+            ;
         }
         else if (l == Type.IMAGE) {
             boolean p = false;
