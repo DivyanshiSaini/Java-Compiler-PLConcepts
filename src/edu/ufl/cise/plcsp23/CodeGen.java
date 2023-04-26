@@ -385,9 +385,9 @@ public class CodeGen implements ASTVisitor {
             } //HELP what's the minus do? is it implemented correctly?
             case MINUS->{
                 if(unaryType == Type.INT) {
-                    sB.append("-");
+                    sB.append("(-");
                     //visiting should append it
-                    sB.append(unaryExpr.getE().visit(this,arg));
+                    sB.append(unaryExpr.getE().visit(this,arg) + ")");
                 }
             }
         }

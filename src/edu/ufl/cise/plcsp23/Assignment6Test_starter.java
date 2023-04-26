@@ -1955,4 +1955,16 @@ class Assignment6Test_starter {
 		show(output);
 		imageEquals(expected, output);
 	}
+
+	@Test
+	void andPowerOfAPixel() throws Exception {
+		String input = """
+                int p(pixel p) {
+                    int result = p ** 2.
+                    :result.
+                }
+                """;
+		Object[] params = { 0xff020304 };
+		assertEquals(0xff040910, (int) genCodeAndRun(input, "", params));
+	}
 }
