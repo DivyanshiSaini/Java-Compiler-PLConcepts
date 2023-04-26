@@ -494,7 +494,7 @@ public class CodeGen implements ASTVisitor {
                     //HELP where are we reading it in from?
                     //sB.append(" = ");
                     sB.append("ImageOps.copyInto(FileURLIO.readImage(" + statementAssign.getE().visit(this,arg));
-                    sB.append("), " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + "))");
+                    sB.append("), " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ")");
                 } else if ( r == Type.IMAGE) {
                     //sB.append(" = ");
                     sB.append("ImageOps.copyInto(" + statementAssign.getE().visit(this,arg));
