@@ -478,7 +478,7 @@ public class CodeGen implements ASTVisitor {
             sB.append("String.valueOf(" + statementAssign.getE().visit(this,arg) + ")");
         }
         else if (l == Type.PIXEL) {
-
+            sB.append(statementAssign.getE().visit(this,arg));
         }
         else if (l == Type.IMAGE) {
             boolean p = false;
@@ -500,16 +500,15 @@ public class CodeGen implements ASTVisitor {
                     sB.append(", " +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ")");
                 } else if (r == Type.PIXEL) {
                     sB.append("ImageOps.setAllPixels(" +  statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber);
-                    sB.append("," );
+                    sB.append("," + statementAssign.getE().visit(this,arg) + ")");
                 }
             } else if (p && !c) {
                // sB.append("int hshift = 0; \n" + "int vshift = (h/2); \n");
                 sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t") ;
                 sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n \t\t");
                 sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
-               sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
+                sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
                 sB.append(statementAssign.getE().visit(this,arg)); //visit UEPF
-                //sB.append(", (x+hshift) , (y + vshift) )");
                 sB.append("); \n } \n }");
 
             } else if (p && c) {
