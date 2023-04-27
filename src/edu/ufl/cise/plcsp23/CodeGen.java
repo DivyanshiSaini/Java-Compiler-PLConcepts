@@ -157,6 +157,7 @@ public class CodeGen implements ASTVisitor {
                         sB.append("ImageOps.makeImage(");
                         sB.append(declaration.getNameDef().getDimension().getWidth().visit(this, arg) + ",");
                         sB.append(declaration.getNameDef().getDimension().getHeight().visit(this, arg) + ")");
+
                     }
                 }
             } else {
