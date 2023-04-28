@@ -518,8 +518,8 @@ public class CodeGen implements ASTVisitor {
                 }
             } else if (p && !c) {
                // sB.append("int hshift = 0; \n" + "int vshift = (h/2); \n");
-                sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t") ;
-                sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n \t\t");
+                sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t\t") ;
+                sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n \t\t\t\t");
                 sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg) + ",");
                 sB.append(statementAssign.getE().visit(this,arg)); //visit UEPF
@@ -532,14 +532,14 @@ public class CodeGen implements ASTVisitor {
                 if(color == ColorChannel.grn){temp = "PixelOps.setGrn(";}
                 if(color == ColorChannel.blu){temp = "PixelOps.setBlu(";}
 
-                sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t") ;
-                sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n\t\t");
+                sB.append("for(int y = 0; y !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getHeight(); y++) { \n \t\t\t") ;
+                sB.append("for(int x = 0; x !=" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ".getWidth(); x++) { \n\t\t\t\t");
                 sB.append("ImageOps.setRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().visit(this,arg));
                 sB.append("," + temp + "ImageOps.getRGB(" + statementAssign.getLv().getIdent().getName()+"_"+ statementAssign.decNumber + ",");
                 sB.append(statementAssign.getLv().getPixelSelector().getX().visit(this,arg) + ",");
-                sB.append(statementAssign.getLv().getPixelSelector().getY().visit(this,arg) + ")," + statementAssign.getLv().getPixelSelector().getX().visit(this,arg)+"));");
-                sB.append("\n} \n}");
+                sB.append(statementAssign.getLv().getPixelSelector().getY().visit(this,arg) + ")," + statementAssign.getE().visit(this,arg)+"));");
+                sB.append("\n\t\t\t} \n\t\t}");
             }
         } else {
             sB.append(statementAssign.getLv().visit(this,arg));
